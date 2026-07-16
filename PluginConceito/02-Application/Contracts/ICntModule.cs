@@ -4,6 +4,7 @@ namespace PluginConceito.Application.Contracts
     {
         string Id { get; }
 
+//TESTE_GUIT
         void Initialize(IModuleContext context);
     }
 }
