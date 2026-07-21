@@ -40,11 +40,6 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return Limites.MaxPoint.Y - Limites.MinPoint.Y; }
         }
 
-        public string Dimensoes
-        {
-            get { return Math.Round(Largura) + " x " + Math.Round(Altura) + " mm"; }
-        }
-
         public bool LimitePadronizadoEncontrado { get; set; }
 
         public IList<string> Erros { get; } = new List<string>();

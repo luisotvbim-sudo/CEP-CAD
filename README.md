@@ -259,6 +259,8 @@ Dentro de um módulo maior, prefira separar por intenção:
 - `Discovery`: leitura/localização de elementos no desenho;
 - `Naming`: regras de nomenclatura;
 - `Plotting` ou `Export`: geração de saídas;
+- `Export/ModelIsolation`: isolamento do Model pelas regiões visíveis das viewports;
+- `Export/LayoutIsolation`: isolamento da folha no Paper Space e preparação da vista inicial;
 - `Navigation`: interação de navegação/zoom;
 - `UI`: janela, view model e handlers de eventos;
 - `UI/Services`: casos de uso acionados pela interface.
@@ -313,7 +315,7 @@ O cabeçalho estruturado suporta até dez partes e detecta separadores existente
 
 #### 3. Interface
 
-`PlotFolhasHandler` cria uma janela modeless com as folhas, dispositivos, estilos de plotagem, pasta e opções de saída. Ele coordena:
+`PlotFolhasHandler` cria a janela modeless e controla seu ciclo de vida. Workflows especializados coordenam:
 
 - aplicar nome estruturado;
 - editar e validar nomes individuais;
@@ -352,14 +354,24 @@ No modo de emissão automática, cria a próxima pasta livre no padrão `Emissã
 
 #### 6. DWG individual
 
-`DwgExportService` exige que o desenho atual já esteja salvo. Ele abre uma base de dados separada a partir do arquivo fonte, preservando o Model Space integralmente. Na cópia:
+`DwgExportService` cria, via `Database.Wblock()`, uma cópia integral do desenho ativo em memória. Alterações confirmadas no documento, mesmo ainda não salvas em disco, entram na exportação. Somente essa cópia é alterada. Na cópia:
 
 - mantém o bloco da folha selecionada;
 - mantém entidades do layout que interceptam a folha;
 - preserva viewports associados e remove os demais elementos do Paper Space;
 - ajusta a vista base do layout;
+- salva o layout da folha como espaço atual, com enquadramento equivalente a `ZOOM EXTENTS` e margem para abertura centralizada;
+- converte os limites das viewports preservadas em regiões no DCS de cada vista;
+- mantém a união das regiões quando a folha possui múltiplas viewports;
+- testa os oito cantos dos limites 3D de cada entidade no DCS e apaga do Model somente entidades seguramente externas a todas as regiões;
+- preserva inteira qualquer referência de bloco ou Xref cujos limites interceptem ao menos uma viewport, sem `EXPLODE`, `TRIM` ou alteração da definição;
+- usa o contorno de clip para viewports poligonais retas ou circulares e ignora viewports desligadas e de papel;
+- esvazia o Model quando a folha não possui nenhuma viewport de Model elegível;
+- preserva o Model integralmente quando existem viewports, mas as regiões calculadas não encontram nenhuma entidade;
+- cancela a exportação antes de apagar o Model quando há uma viewport em perspectiva, que não pode ser isolada com segurança;
+- preserva entidades sem `GeometricExtents`, pois elas não podem ser classificadas com segurança;
 - impede que a saída substitua o arquivo fonte;
-- respeita a política de sobrescrita e confirma a existência do arquivo final.
+- salva primeiro em um arquivo temporário e só substitui a saída existente depois que a geração termina com sucesso.
 
 O desenho aberto pelo usuário não é mutilado para produzir os DWGs individuais.
 

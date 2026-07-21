@@ -25,14 +25,50 @@ namespace PluginConceito.Modules.PlotFolhas
         public void ApplyStructure(
             IReadOnlyList<FolhaInfo> sheets,
             string separator,
-            IEnumerable<string> parts)
+            IEnumerable<string> parts,
+            IEnumerable<bool> sequentialFlags)
         {
-            foreach (FolhaInfo sheet in sheets)
+            List<string> baseParts = (parts ?? Enumerable.Empty<string>()).ToList();
+            List<bool> flags = (sequentialFlags ?? Enumerable.Empty<bool>()).ToList();
+
+            for (int sheetIndex = 0; sheetIndex < sheets.Count; sheetIndex++)
             {
-                sheet.NomeArquivo = _nameService.BuildStructuredName(separator, parts);
+                List<string> sheetParts = new List<string>();
+                for (int partIndex = 0; partIndex < baseParts.Count; partIndex++)
+                {
+                    string part = baseParts[partIndex];
+                    bool isSequential = partIndex < flags.Count && flags[partIndex];
+                    sheetParts.Add(isSequential ? GetSequentialValue(part, sheetIndex) : part);
+                }
+
+                sheets[sheetIndex].NomeArquivo = _nameService.BuildStructuredName(separator, sheetParts);
             }
 
             _nameService.ValidateNames(sheets);
+        }
+
+        private static string GetSequentialValue(string baseValue, int offset)
+        {
+            if (string.IsNullOrEmpty(baseValue)) return baseValue;
+
+            int digitStart = FindDigitStart(baseValue);
+            string prefix = digitStart > 0 ? baseValue.Substring(0, digitStart) : string.Empty;
+            string numberPart = baseValue.Substring(digitStart);
+
+            if (!long.TryParse(numberPart, out long number)) return baseValue;
+
+            long next = number + offset;
+            return prefix + next.ToString("D" + numberPart.Length);
+        }
+
+        private static int FindDigitStart(string value)
+        {
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (char.IsDigit(value[i])) return i;
+            }
+
+            return value.Length;
         }
 
         public void NormalizeEditedName(FolhaInfo editedSheet, IReadOnlyList<FolhaInfo> allSheets)

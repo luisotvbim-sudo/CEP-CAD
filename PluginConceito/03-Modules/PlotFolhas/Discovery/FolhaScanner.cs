@@ -266,29 +266,6 @@ namespace PluginConceito.Modules.PlotFolhas
 
         private static bool TryGetTransformedEntityExtents(
             Entity entity,
-            Matrix3d transform,
-            out Extents2d result)
-        {
-            result = default(Extents2d);
-
-            if (entity == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                return TryTransformExtents(entity.GeometricExtents, transform, out result);
-            }
-            catch
-            {
-                result = default(Extents2d);
-                return false;
-            }
-        }
-
-        private static bool TryGetTransformedEntityExtents(
-            Entity entity,
             IList<Matrix3d> transforms,
             out Extents2d result)
         {
@@ -347,46 +324,6 @@ namespace PluginConceito.Modules.PlotFolhas
             }
             catch
             {
-                return false;
-            }
-        }
-
-        private static bool TryTransformExtents(
-            Extents3d source,
-            Matrix3d transform,
-            out Extents2d result)
-        {
-            try
-            {
-                Point3d[] corners =
-                {
-                    new Point3d(source.MinPoint.X, source.MinPoint.Y, source.MinPoint.Z),
-                    new Point3d(source.MinPoint.X, source.MaxPoint.Y, source.MinPoint.Z),
-                    new Point3d(source.MaxPoint.X, source.MinPoint.Y, source.MinPoint.Z),
-                    new Point3d(source.MaxPoint.X, source.MaxPoint.Y, source.MinPoint.Z)
-                };
-
-                Point3d first = corners[0].TransformBy(transform);
-                double minX = first.X;
-                double minY = first.Y;
-                double maxX = first.X;
-                double maxY = first.Y;
-
-                for (int index = 1; index < corners.Length; index++)
-                {
-                    Point3d transformed = corners[index].TransformBy(transform);
-                    minX = Math.Min(minX, transformed.X);
-                    minY = Math.Min(minY, transformed.Y);
-                    maxX = Math.Max(maxX, transformed.X);
-                    maxY = Math.Max(maxY, transformed.Y);
-                }
-
-                result = new Extents2d(new Point2d(minX, minY), new Point2d(maxX, maxY));
-                return true;
-            }
-            catch
-            {
-                result = default(Extents2d);
                 return false;
             }
         }

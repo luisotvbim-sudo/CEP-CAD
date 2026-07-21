@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WinForms = System.Windows.Forms;
 
@@ -22,7 +23,8 @@ namespace PluginConceito.Modules.PlotFolhas
             string defaultDevice,
             string defaultPlotStyle,
             string namingSeparator,
-            IReadOnlyList<string> namingParts)
+            IReadOnlyList<string> namingParts,
+            IEnumerable<string> stampBlockNames)
         {
             InitializeComponent();
             _viewModel = new PlotFolhasViewModel(
@@ -34,7 +36,8 @@ namespace PluginConceito.Modules.PlotFolhas
                 defaultDevice,
                 defaultPlotStyle,
                 namingSeparator,
-                namingParts);
+                namingParts,
+                stampBlockNames);
             DataContext = _viewModel;
         }
 
@@ -43,18 +46,23 @@ namespace PluginConceito.Modules.PlotFolhas
         public event EventHandler ZoomRequested;
         public event EventHandler SaveNamesRequested;
         public event EventHandler PlotRequested;
+        public event EventHandler StampBlockChanged;
+        public event EventHandler RefreshRequested;
 
-        public string NamingSeparator { get { return _viewModel.NamingSeparator; } }
-        public IReadOnlyList<string> NamingParts { get { return _viewModel.GetNamingParts(); } }
-        public string OutputFolder { get { return _viewModel.OutputFolder; } }
-        public bool UseAutomaticEmissionFolder { get { return _viewModel.UseAutomaticEmissionFolder; } }
-        public string AutomaticEmissionBaseFolder { get { return _viewModel.AutomaticEmissionBaseFolder; } }
-        public string DeviceName { get { return _viewModel.DeviceName; } }
-        public string CtbName { get { return _viewModel.CtbName; } }
-        public bool OverwriteExisting { get { return _viewModel.OverwriteExisting; } }
+        public string NamingSeparator { get { return _viewModel.NamingStructure.Separator; } }
+        public IReadOnlyList<string> NamingParts { get { return _viewModel.NamingStructure.GetValues(); } }
+        public IReadOnlyList<bool> NamingPartSequential { get { return _viewModel.NamingStructure.GetSequentialFlags(); } }
+        public string OutputFolder { get { return _viewModel.Output.OutputFolder; } }
+        public bool UseAutomaticEmissionFolder { get { return _viewModel.Output.UseAutomaticEmissionFolder; } }
+        public string AutomaticEmissionBaseFolder { get { return _viewModel.Output.AutomaticEmissionBaseFolder; } }
+        public string DeviceName { get { return _viewModel.Output.DeviceName; } }
+        public string CtbName { get { return _viewModel.Output.CtbName; } }
+        public bool OverwriteExisting { get { return _viewModel.Output.OverwriteExisting; } }
         public FolhaInfo SelectedSheet { get { return _viewModel.SelectedSheet; } }
         public FolhaInfo EditedSheet { get; private set; }
-        public IReadOnlyList<FolhaInfo> Sheets { get { return _viewModel.Sheets.ToList(); } }
+        public IReadOnlyList<FolhaInfo> Sheets { get { return _viewModel.SheetCollection.Items.ToList(); } }
+        public string SelectedStampBlock { get { return _viewModel.StampSelection.SelectedBlock; } }
+        public string SelectedStampAttribute { get { return _viewModel.StampSelection.SelectedAttribute; } }
 
         public void CommitChanges()
         {
@@ -65,7 +73,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void RefreshSheets()
         {
-            _viewModel.Refresh();
+            _viewModel.SheetCollection.Refresh();
             SheetsGrid.Items.Refresh();
         }
 
@@ -94,7 +102,12 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void SetResolvedOutputFolder(string outputFolder)
         {
-            _viewModel.SetResolvedOutputFolder(outputFolder);
+            _viewModel.Output.SetResolvedOutputFolder(outputFolder);
+        }
+
+        public void SetStampAttributes(IEnumerable<string> attributes)
+        {
+            _viewModel.StampSelection.SetAttributes(attributes);
         }
 
         public void ProcessPendingUiMessages()
@@ -118,10 +131,10 @@ namespace PluginConceito.Modules.PlotFolhas
             _viewModel.RemoveNamingPart();
         }
 
-        private void SelectAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SetAllPdf(true); }
-        private void ClearAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SetAllPdf(false); }
-        private void SelectAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SetAllDwg(true); }
-        private void ClearAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SetAllDwg(false); }
+        private void SelectAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(true); }
+        private void ClearAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(false); }
+        private void SelectAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(true); }
+        private void ClearAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(false); }
 
         private void ZoomSheetClick(object sender, RoutedEventArgs e)
         {
@@ -150,9 +163,19 @@ namespace PluginConceito.Modules.PlotFolhas
                 dialog.ShowNewFolderButton = true;
                 if (dialog.ShowDialog() == WinForms.DialogResult.OK)
                 {
-                    _viewModel.ChooseOutputFolder(dialog.SelectedPath);
+                    _viewModel.Output.ChooseOutputFolder(dialog.SelectedPath);
                 }
             }
+        }
+
+        private void OnStampBlockSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Raise(StampBlockChanged);
+        }
+
+        private void RefreshClick(object sender, RoutedEventArgs e)
+        {
+            Raise(RefreshRequested);
         }
 
         private void OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
@@ -164,6 +187,21 @@ namespace PluginConceito.Modules.PlotFolhas
 
             EditedSheet = e.Row?.Item as FolhaInfo;
             Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => Raise(FileNameEdited)));
+        }
+
+        private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var source = e.OriginalSource as DependencyObject;
+            while (source != null)
+            {
+                if (source is TextBox || source is ComboBox || source is ComboBoxItem ||
+                    source is CheckBox || source is Button || source is DataGridCell)
+                    return;
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            if (e.OriginalSource is UIElement element && element.Focusable) return;
+            Keyboard.ClearFocus();
         }
 
         private void Raise(EventHandler handler)
