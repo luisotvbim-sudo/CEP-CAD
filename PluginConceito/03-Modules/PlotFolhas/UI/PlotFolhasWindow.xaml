@@ -6,13 +6,14 @@
         Width="1240" Height="780" MinWidth="980" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Background="#F4F6F8"
-        FontFamily="Segoe UI" FontSize="13">
+        FontFamily="Segoe UI" FontSize="13"
+        PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
     <Window.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#1F6E5A" />
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#185747" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#F08F38" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF9F40" />
         <SolidColorBrush x:Key="TextBrush" Color="#243038" />
         <SolidColorBrush x:Key="MutedBrush" Color="#65747D" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#D8E0E4" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#C0C0C0" />
 
         <Style TargetType="Button">
             <Setter Property="Padding" Value="14,8" />
@@ -21,6 +22,13 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
@@ -28,6 +36,13 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="MinWidth" Value="155" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="TextBox">
             <Setter Property="Padding" Value="8,6" />
@@ -86,6 +101,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="0,0,0,14">
@@ -98,6 +114,7 @@
                 <TextBlock Text="Revise, nomeie e gere os arquivos do layout ativo." Margin="0,3,0,0" Foreground="{StaticResource MutedBrush}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Atualizar" Click="RefreshClick" Margin="0,0,10,0" ToolTip="Recarrega as folhas e informações do layout ativo." />
                 <Border Style="{StaticResource SummaryCard}">
                     <StackPanel Orientation="Horizontal"><TextBlock Text="Folhas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding TotalSheetCount}" FontWeight="Bold"/></StackPanel>
                 </Border>
@@ -127,11 +144,14 @@
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
+                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBox Width="72" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
-                                            <TextBlock Text="{Binding DataContext.NamingSeparator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="6,0" VerticalAlignment="Center" FontWeight="Bold" Foreground="#9A7A3D" />
+                                            <StackPanel>
+                                                <TextBox Width="72" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
+                                                <CheckBox IsChecked="{Binding IsSequential}" HorizontalAlignment="Center" FontSize="10" Margin="0,4,0,0" ToolTip="Numeração sequencial">Seq</CheckBox>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding DataContext.NamingSeparator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="5,7,5,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#F08F38" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -187,7 +207,6 @@
                     <DataGridCheckBoxColumn Header="DWG" Binding="{Binding GerarDwg, UpdateSourceTrigger=PropertyChanged}" Width="62" />
                     <DataGridTextColumn Header="#" Binding="{Binding Sequencia}" IsReadOnly="True" Width="52" />
                     <DataGridTextColumn Header="Formato" Binding="{Binding Formato}" IsReadOnly="True" Width="85" />
-                    <DataGridTextColumn Header="Dimensões" Binding="{Binding Dimensoes}" IsReadOnly="True" Width="135" />
                     <DataGridTextColumn Header="Nome do arquivo" Binding="{Binding NomeArquivo, UpdateSourceTrigger=LostFocus}" Width="*" MinWidth="280" />
                     <DataGridTemplateColumn Header="Situação" Width="250">
                         <DataGridTemplateColumn.CellTemplate>
@@ -236,7 +255,34 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="5">
+        <Border Grid.Row="5" Style="{StaticResource SectionBorder}" Margin="0,0,0,10" Padding="12">
+            <Expander Header="Copiar nome para selo" Padding="12,9" IsExpanded="False">
+                <Grid Margin="0,10,0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="85" />
+                        <ColumnDefinition Width="1.5*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Bloco" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding StampBlockNames}"
+                              SelectedItem="{Binding SelectedStampBlock}"
+                              SelectionChanged="OnStampBlockSelectionChanged"
+                              IsEditable="True"
+                              IsTextSearchEnabled="True"
+                              ToolTip="Escolha o bloco de selo que contém o atributo a preencher." />
+                    <TextBlock Grid.Column="2" Text="Atributo" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="{StaticResource MutedBrush}" />
+                    <ComboBox Grid.Column="3"
+                              x:Name="StampAttributeCombo"
+                              ItemsSource="{Binding StampAttributes}"
+                              SelectedItem="{Binding SelectedStampAttribute, Mode=TwoWay}"
+                              ToolTip="Escolha qual atributo do selo receberá o nome de cada folha." />
+                </Grid>
+            </Expander>
+        </Border>
+
+        <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -257,7 +303,7 @@
             <Button Grid.Column="2" Content="Gerar arquivos" Click="PlotClick" Style="{StaticResource PrimaryButton}" />
         </Grid>
 
-        <Border Grid.RowSpan="6" Background="#60FFFFFF" Panel.ZIndex="20">
+        <Border Grid.RowSpan="7" Background="#60FFFFFF" Panel.ZIndex="20">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />

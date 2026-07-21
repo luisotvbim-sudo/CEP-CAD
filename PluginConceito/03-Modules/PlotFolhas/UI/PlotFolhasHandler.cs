@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using PluginConceito.Application.Contracts;
@@ -14,9 +15,10 @@ namespace PluginConceito.Modules.PlotFolhas
         private readonly PlotFolhasNamingService _namingService;
         private readonly PlotFolhasGenerationService _generationService;
         private readonly SheetZoomService _zoomService;
+        private readonly SeloBlockService _seloService;
 
         private PlotFolhasWindow _window;
-        private Document _windowDocument;
+        private readonly PlotFolhasDocumentTracker _documentTracker;
 
         public PlotFolhasHandler(IModuleContext context)
         {
@@ -46,6 +48,8 @@ namespace PluginConceito.Modules.PlotFolhas
                 nomenclatureService);
             _generationService = new PlotFolhasGenerationService(executionService);
             _zoomService = new SheetZoomService(context.Zwcad);
+            _seloService = new SeloBlockService(context.Zwcad);
+            _documentTracker = new PlotFolhasDocumentTracker();
         }
 
         public void Execute()
@@ -75,7 +79,18 @@ namespace PluginConceito.Modules.PlotFolhas
         private void ShowWindow(PlotFolhasSession session)
         {
             _window?.Close();
-            UnsubscribeDocumentLifeCycle();
+            _documentTracker.Detach();
+
+            IReadOnlyList<string> blockNames;
+            try
+            {
+                blockNames = _seloService.GetBlockNames();
+            }
+            catch (Exception exception)
+            {
+                _context.Telemetry.TrackException("SeloBlock.GetBlockNames", exception);
+                blockNames = new List<string>();
+            }
 
             _window = new PlotFolhasWindow(
                 session.Sheets,
@@ -86,17 +101,19 @@ namespace PluginConceito.Modules.PlotFolhas
                 session.DefaultDevice,
                 session.DefaultPlotStyle,
                 session.NamingSeparator,
-                session.NamingParts);
+                session.NamingParts,
+                blockNames);
 
             _window.ApplyStructuredNameRequested += OnApplyStructuredNameRequested;
             _window.FileNameEdited += OnFileNameEdited;
             _window.ZoomRequested += OnZoomRequested;
             _window.SaveNamesRequested += OnSaveNamesRequested;
             _window.PlotRequested += OnPlotRequested;
+            _window.StampBlockChanged += OnStampBlockChanged;
+            _window.RefreshRequested += OnRefreshRequested;
             _window.Closed += OnWindowClosed;
 
-            _windowDocument = session.Document;
-            SubscribeDocumentLifeCycle();
+            _documentTracker.Attach(_window, session.Document);
             ZwcadApplication.ShowModelessWindow(_window);
         }
 
@@ -105,7 +122,7 @@ namespace PluginConceito.Modules.PlotFolhas
             PlotFolhasWindow window = _window;
             if (window == null) return;
 
-            _namingService.ApplyStructure(window.Sheets, window.NamingSeparator, window.NamingParts);
+            _namingService.ApplyStructure(window.Sheets, window.NamingSeparator, window.NamingParts, window.NamingPartSequential);
             window.RefreshSheets();
             window.SetStatusMessage("Estrutura aplicada em todas as folhas.");
         }
@@ -143,6 +160,12 @@ namespace PluginConceito.Modules.PlotFolhas
             {
                 window.SetBusy(true);
                 int saved = _namingService.Save(window.Sheets);
+
+                _seloService.FillSeloAttributes(
+                    window.Sheets,
+                    window.SelectedStampBlock,
+                    window.SelectedStampAttribute);
+
                 window.SetStatusMessage("Nomenclatura salva em " + saved + " folha(s).");
             }
             catch (Exception exception)
@@ -231,6 +254,41 @@ namespace PluginConceito.Modules.PlotFolhas
             ExecuteGeneration(window, preparation, overwrite);
         }
 
+        private void OnStampBlockChanged(object sender, EventArgs e)
+        {
+            PlotFolhasWindow window = _window;
+            if (window == null) return;
+
+            string blockName = window.SelectedStampBlock;
+            IReadOnlyList<string> attributes = string.IsNullOrWhiteSpace(blockName)
+                ? new List<string>()
+                : _seloService.GetAttributeTags(blockName);
+            window.SetStampAttributes(attributes);
+        }
+
+        private void OnRefreshRequested(object sender, EventArgs e)
+        {
+            try
+            {
+                PlotFolhasSession session = _sessionService.Create();
+                if (!session.HasSheets)
+                {
+                    ZwcadApplication.ShowAlertDialog(
+                        "Nenhuma folha foi encontrada no layout atual.\n\n" +
+                        "Use blocos com nomes exatos CEP-A4, CEP-A3, CEP-A2, CEP-A1, CEP-A0, " +
+                        "CEP-A1E ou CEP-A0E.");
+                    return;
+                }
+
+                ShowWindow(session);
+            }
+            catch (Exception exception)
+            {
+                _context.Telemetry.TrackException("CNT_PLOT_FOLHAS.Refresh", exception);
+                ZwcadApplication.ShowAlertDialog("Falha ao atualizar folhas: " + exception.Message);
+            }
+        }
+
         private void ExecuteGeneration(
             PlotFolhasWindow window,
             PlotFolhasGenerationPreparation preparation,
@@ -245,6 +303,8 @@ namespace PluginConceito.Modules.PlotFolhas
                     preparation.Plan.PdfSheets.Count,
                     preparation.Plan.DwgSheets.Count));
 
+                FillSeloIfConfigured(window, preparation);
+
                 PlotExecutionResult result = _generationService.Execute(
                     preparation,
                     preparation.OutputFolder,
@@ -255,7 +315,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
                 _context.Telemetry.TrackEvent("CNT_PLOT_FOLHAS.Plot.Success");
                 ReportStatus(window, string.Format(
-                    "Concluído: {0} PDF(s) e {1} DWG(s) gerado(s).",
+                    "Concluido: {0} PDF(s) e {1} DWG(s) gerado(s).",
                     result.PdfCount,
                     result.DwgCount));
                 generationCompleted = true;
@@ -271,14 +331,27 @@ namespace PluginConceito.Modules.PlotFolhas
                 window.SetBusy(false);
             }
 
-            if (!generationCompleted) return;
+            if (generationCompleted) OpenOutputFolder(window, preparation.OutputFolder);
+        }
 
+        private void FillSeloIfConfigured(PlotFolhasWindow window, PlotFolhasGenerationPreparation preparation)
+        {
+            if (string.IsNullOrWhiteSpace(window.SelectedStampBlock) ||
+                string.IsNullOrWhiteSpace(window.SelectedStampAttribute))
+                return;
+
+            _seloService.FillSeloAttributes(
+                preparation.Plan.SelectedSheets,
+                window.SelectedStampBlock,
+                window.SelectedStampAttribute);
+        }
+
+        private void OpenOutputFolder(PlotFolhasWindow window, string outputFolder)
+        {
             window.ProcessPendingUiMessages();
-            string openFolderError = _generationService.TryOpenOutputFolder(preparation.OutputFolder);
-            if (!string.IsNullOrWhiteSpace(openFolderError))
-            {
-                ReportStatus(window, openFolderError);
-            }
+            string error = _generationService.TryOpenOutputFolder(outputFolder);
+            if (!string.IsNullOrWhiteSpace(error))
+                ReportStatus(window, error);
         }
 
         private static void ReportStatus(PlotFolhasWindow window, string message)
@@ -289,68 +362,8 @@ namespace PluginConceito.Modules.PlotFolhas
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            UnsubscribeDocumentLifeCycle();
+            _documentTracker.Detach();
             _window = null;
-            _windowDocument = null;
-        }
-
-        private void SubscribeDocumentLifeCycle()
-        {
-            DocumentCollection manager = ZwcadApplication.DocumentManager;
-            if (manager == null) return;
-            manager.DocumentActivated += OnDocumentActivated;
-            manager.DocumentBecameCurrent += OnDocumentBecameCurrent;
-            manager.DocumentToBeDestroyed += OnDocumentToBeDestroyed;
-        }
-
-        private void UnsubscribeDocumentLifeCycle()
-        {
-            DocumentCollection manager = ZwcadApplication.DocumentManager;
-            if (manager == null) return;
-            manager.DocumentActivated -= OnDocumentActivated;
-            manager.DocumentBecameCurrent -= OnDocumentBecameCurrent;
-            manager.DocumentToBeDestroyed -= OnDocumentToBeDestroyed;
-        }
-
-        private void OnDocumentActivated(object sender, DocumentCollectionEventArgs e)
-        {
-            CloseWindowIfDocumentChanged(e.Document);
-        }
-
-        private void OnDocumentBecameCurrent(object sender, DocumentCollectionEventArgs e)
-        {
-            CloseWindowIfDocumentChanged(e.Document);
-        }
-
-        private void OnDocumentToBeDestroyed(object sender, DocumentCollectionEventArgs e)
-        {
-            if (_windowDocument != null && ReferenceEquals(e.Document, _windowDocument))
-            {
-                CloseWindowBecauseDocumentChanged("Documento fechado; janela encerrada.");
-            }
-        }
-
-        private void CloseWindowIfDocumentChanged(Document currentDocument)
-        {
-            if (_windowDocument != null && currentDocument != null && !ReferenceEquals(currentDocument, _windowDocument))
-            {
-                CloseWindowBecauseDocumentChanged("Documento trocado; janela encerrada.");
-            }
-        }
-
-        private void CloseWindowBecauseDocumentChanged(string statusMessage)
-        {
-            PlotFolhasWindow window = _window;
-            if (window == null) return;
-            try
-            {
-                window.SetStatusMessage(statusMessage);
-                window.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(window.Close));
-            }
-            catch
-            {
-                // O ZWCAD pode estar destruindo a janela ao mesmo tempo.
-            }
         }
     }
 }

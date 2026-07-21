@@ -58,9 +58,10 @@ Ele está disponível na Ribbon em **CNT > Plotagem > Plotar folhas**.
 
 ### Para gerar DWG por folha
 
-- Salve o desenho atual antes de iniciar: a exportação parte do arquivo DWG salvo em disco.
+- A exportação cria uma cópia do desenho ativo em memória; alterações confirmadas ainda não salvas também entram no DWG individual.
 - O DWG de saída recebe o mesmo nome da folha, trocando `.pdf` por `.dwg`.
-- A exportação preserva o Model e mantém, no Layout, apenas o conteúdo da folha e os viewports que pertencem à área daquela folha.
+- A exportação mantém, no Layout, apenas o conteúdo da folha e as viewports cujo centro pertence à área da folha.
+- No Model, mantém a união das regiões vistas por essas viewports. Sem viewport de Model, esvazia o Model; se existem viewports mas não há correspondência geométrica, preserva-o inteiro. Região inválida cancela sem apagar o Model.
 
 ## Validações e comportamentos importantes
 
@@ -80,4 +81,3 @@ Ele está disponível na Ribbon em **CNT > Plotagem > Plotar folhas**.
 - [ ] Folhas sem sobreposição.
 - [ ] Nomes de PDF únicos para as folhas selecionadas.
 - [ ] Plotter PDF, CTB e pasta de saída definidos.
-- [ ] DWG salvo, se houver geração de DWG individual.

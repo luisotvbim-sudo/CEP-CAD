@@ -21,6 +21,8 @@ namespace PluginConceito.Modules.PlotFolhas
         private string _statusMessage;
         private bool _isBusy;
         private FolhaInfo _selectedSheet;
+        private string _selectedStampBlock;
+        private string _selectedStampAttribute;
 
         public PlotFolhasViewModel(
             IEnumerable<FolhaInfo> sheets,
@@ -31,12 +33,15 @@ namespace PluginConceito.Modules.PlotFolhas
             string defaultDevice,
             string defaultPlotStyle,
             string namingSeparator,
-            IReadOnlyList<string> namingParts)
+            IReadOnlyList<string> namingParts,
+            IEnumerable<string> stampBlockNames)
         {
             Sheets = new ObservableCollection<FolhaInfo>(sheets ?? Enumerable.Empty<FolhaInfo>());
             Devices = new ObservableCollection<string>((devices ?? Enumerable.Empty<string>()).Where(value => value != null));
             PlotStyles = new ObservableCollection<string>((plotStyles ?? Enumerable.Empty<string>()).Where(value => value != null));
             NamingParts = new ObservableCollection<NamingPartViewModel>();
+            StampBlockNames = new ObservableCollection<string>((stampBlockNames ?? Enumerable.Empty<string>()).Where(value => value != null));
+            StampAttributes = new ObservableCollection<string>();
 
             _outputFolder = defaultOutputFolder ?? string.Empty;
             _automaticEmissionBaseFolder = useAutomaticEmissionFolder ? _outputFolder : null;
@@ -65,6 +70,10 @@ namespace PluginConceito.Modules.PlotFolhas
         public ObservableCollection<string> PlotStyles { get; }
 
         public ObservableCollection<NamingPartViewModel> NamingParts { get; }
+
+        public ObservableCollection<string> StampBlockNames { get; }
+
+        public ObservableCollection<string> StampAttributes { get; }
 
         public string SearchText
         {
@@ -152,6 +161,21 @@ namespace PluginConceito.Modules.PlotFolhas
             set { SetField(ref _selectedSheet, value, nameof(SelectedSheet)); }
         }
 
+        public string SelectedStampBlock
+        {
+            get { return _selectedStampBlock; }
+            set
+            {
+                if (!SetField(ref _selectedStampBlock, value, nameof(SelectedStampBlock))) return;
+            }
+        }
+
+        public string SelectedStampAttribute
+        {
+            get { return _selectedStampAttribute; }
+            set { SetField(ref _selectedStampAttribute, value, nameof(SelectedStampAttribute)); }
+        }
+
         public int TotalSheetCount { get { return Sheets.Count; } }
 
         public int VisibleSheetCount { get { return SheetsView == null ? Sheets.Count : SheetsView.Cast<object>().Count(); } }
@@ -167,6 +191,11 @@ namespace PluginConceito.Modules.PlotFolhas
             return NamingParts.Select(part => part.Value ?? string.Empty).ToList();
         }
 
+        public IReadOnlyList<bool> GetNamingPartSequential()
+        {
+            return NamingParts.Select(part => part.IsSequential).ToList();
+        }
+
         public void ChooseOutputFolder(string outputFolder)
         {
             _outputFolderChosenByUser = true;
@@ -177,6 +206,28 @@ namespace PluginConceito.Modules.PlotFolhas
         public void SetResolvedOutputFolder(string outputFolder)
         {
             SetField(ref _outputFolder, outputFolder ?? string.Empty, nameof(OutputFolder));
+        }
+
+        public void SetStampAttributes(IEnumerable<string> attributes)
+        {
+            string current = SelectedStampAttribute;
+            StampAttributes.Clear();
+            foreach (string attribute in (attributes ?? Enumerable.Empty<string>()).Where(a => a != null))
+            {
+                StampAttributes.Add(attribute);
+            }
+
+            string target = null;
+            if (!string.IsNullOrWhiteSpace(current) && StampAttributes.Contains(current))
+                target = current;
+            else
+                target = StampAttributes.FirstOrDefault();
+
+            if (!string.Equals(_selectedStampAttribute, target, StringComparison.Ordinal))
+            {
+                _selectedStampAttribute = target;
+                RaisePropertyChanged(nameof(SelectedStampAttribute));
+            }
         }
 
         public void AddNamingPart()
@@ -290,34 +341,6 @@ namespace PluginConceito.Modules.PlotFolhas
         private void RaisePropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    internal sealed class NamingPartViewModel : INotifyPropertyChanged
-    {
-        private string _value;
-
-        public NamingPartViewModel(int position, string value)
-        {
-            Position = position;
-            _value = value ?? string.Empty;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public int Position { get; }
-
-        public string Value
-        {
-            get { return _value; }
-            set
-            {
-                string normalized = value ?? string.Empty;
-                if (normalized.Length > 6) normalized = normalized.Substring(0, 6);
-                if (string.Equals(_value, normalized, StringComparison.Ordinal)) return;
-                _value = normalized;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
-            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
@@ -41,6 +42,9 @@ namespace PluginConceito.Modules.PlotFolhas
                     if (!string.IsNullOrWhiteSpace(savedName))
                     {
                         sheet.NomeArquivo = savedName.Trim();
+                        string nameWithoutExtension = Path.GetFileNameWithoutExtension(sheet.NomeArquivo);
+                        if (!string.IsNullOrWhiteSpace(nameWithoutExtension))
+                            sheet.NomeArquivo = nameWithoutExtension + ".pdf";
                     }
                 }
 
@@ -97,7 +101,7 @@ namespace PluginConceito.Modules.PlotFolhas
                     }
 
                     attribute.Tag = AttributeTag;
-                    attribute.TextString = sheet.NomeArquivo ?? string.Empty;
+                    attribute.TextString = Path.GetFileNameWithoutExtension(sheet.NomeArquivo ?? string.Empty);
                     attribute.Invisible = true;
                     saved++;
                 }
@@ -119,10 +123,9 @@ namespace PluginConceito.Modules.PlotFolhas
             Transaction transaction)
         {
             AttributeReference existing = FindNameAttribute(block, transaction, OpenMode.ForWrite);
-            if (existing != null)
-            {
-                return existing;
-            }
+            if (existing != null) return existing;
+
+            EnsureAttributeDefinition(block, transaction);
 
             var attribute = new AttributeReference
             {
@@ -138,33 +141,57 @@ namespace PluginConceito.Modules.PlotFolhas
             return attribute;
         }
 
+        private static void EnsureAttributeDefinition(
+            BlockReference block,
+            Transaction transaction)
+        {
+            ObjectId definitionId = block.IsDynamicBlock
+                ? block.DynamicBlockTableRecord
+                : block.BlockTableRecord;
+
+            if (definitionId.IsNull || definitionId.IsErased) return;
+
+            BlockTableRecord definition = (BlockTableRecord)transaction.GetObject(
+                definitionId, OpenMode.ForWrite);
+
+            foreach (ObjectId id in definition)
+            {
+                if (id.IsNull || id.IsErased) continue;
+                var attDef = transaction.GetObject(id, OpenMode.ForRead, false) as AttributeDefinition;
+                if (attDef != null && string.Equals(
+                    attDef.Tag, AttributeTag, StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+
+            var attributeDefinition = new AttributeDefinition
+            {
+                Tag = AttributeTag,
+                TextString = string.Empty,
+                Invisible = true,
+                Position = block.Position,
+                Height = 1.0
+            };
+
+            definition.AppendEntity(attributeDefinition);
+            transaction.AddNewlyCreatedDBObject(attributeDefinition, true);
+        }
+
         private static AttributeReference FindNameAttribute(
             BlockReference block,
             Transaction transaction,
             OpenMode openMode)
         {
-            if (block == null || transaction == null)
-            {
-                return null;
-            }
+            if (block == null || transaction == null) return null;
 
             foreach (ObjectId attributeId in block.AttributeCollection)
             {
-                if (attributeId.IsNull || attributeId.IsErased)
-                {
-                    continue;
-                }
+                if (attributeId.IsNull || attributeId.IsErased) continue;
 
                 var attribute = transaction.GetObject(attributeId, openMode, false) as AttributeReference;
-                if (attribute == null)
-                {
-                    continue;
-                }
+                if (attribute == null) continue;
 
                 if (string.Equals(attribute.Tag, AttributeTag, StringComparison.OrdinalIgnoreCase))
-                {
                     return attribute;
-                }
             }
 
             return null;
