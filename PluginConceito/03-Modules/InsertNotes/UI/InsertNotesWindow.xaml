@@ -1,0 +1,52 @@
+<Window x:Class="PluginConceito.Modules.InsertNotes.InsertNotesWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Inserir Notas"
+        Width="420" Height="520"
+        MinWidth="340" MinHeight="320"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterOwner"
+        Background="White">
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#F08F38" />
+        <SolidColorBrush x:Key="TextBrush" Color="#243038" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#65747D" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#C0C0C0" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Disciplinas"
+                   FontSize="18" FontWeight="SemiBold"
+                   Foreground="{StaticResource TextBrush}"
+                   Margin="0,0,0,12" />
+
+        <Border Grid.Row="1"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1" CornerRadius="4"
+                Padding="8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding AllDisciplines}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Name}"
+                                      IsChecked="{Binding IsChecked}"
+                                      Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}"
+                                      Margin="{Binding IndentMargin}"
+                                      Foreground="{StaticResource TextBrush}"
+                                      FontSize="13"
+                                      VerticalContentAlignment="Center" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

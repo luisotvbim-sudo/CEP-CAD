@@ -84,6 +84,15 @@
     <Compile Include="03-Modules\PluginStatus\PluginStatusCommand.cs" />
     <Compile Include="03-Modules\PluginStatus\PluginStatusHandler.cs" />
     <Compile Include="03-Modules\PluginStatus\PluginStatusModule.cs" />
+    <Compile Include="03-Modules\InsertNotes\Bootstrap\InsertNotesCommand.cs" />
+    <Compile Include="03-Modules\InsertNotes\Bootstrap\InsertNotesModule.cs" />
+    <Compile Include="03-Modules\InsertNotes\Services\BlocoPathService.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\DisciplineViewModel.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\InsertNotesHandler.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\InsertNotesViewModel.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\InsertNotesWindow.xaml.cs">
+      <DependentUpon>InsertNotesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="03-Modules\PlotFolhas\Naming\ArquivoNomeService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgExportService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\FolhaFormatCatalog.cs" />
@@ -112,6 +121,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="03-Modules\**\Resources\*.*" />
+    <Page Include="03-Modules\InsertNotes\UI\InsertNotesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="03-Modules\PlotFolhas\UI\PlotFolhasWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
