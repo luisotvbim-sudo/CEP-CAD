@@ -18,10 +18,5 @@ namespace PluginConceito.Modules.PlotFolhas
         public string Separator { get; private set; }
 
         public IReadOnlyList<string> Parts { get; private set; }
-
-        public bool HasParts
-        {
-            get { return Parts.Count > 0; }
-        }
     }
 }

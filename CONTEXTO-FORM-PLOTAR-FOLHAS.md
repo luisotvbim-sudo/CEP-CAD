@@ -15,7 +15,7 @@ PlotFolhasHandler.cs        → orquestrador — cria sessão, abre janela, assi
     ↓
 PlotFolhasWindow.xaml/.cs   → UI WPF modeless — DataGrid + controles
     ↓ (eventos)
-PlotFolhasHandler.cs        → processa eventos chamando serviços
+Workflows especializados    → nomes/selo, zoom e geração
     ↓
 Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração de arquivos
 ```
@@ -36,6 +36,7 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 ├── Naming/
 │   ├── ArquivoNomeService.cs     # Sanitização e validação de nomes
 │   ├── FolhaNomenclaturaService.cs # Leitura/escrita do atributo CNT_NOME_ARQUIVO
+│   ├── FolhaNameAttributeStore.cs # Persistência de baixo nível do atributo
 │   ├── NamingStandardParser.cs   # Parser de separadores
 │   └── ParsedName.cs             # Modelo de nome parseado
 ├── Plotting/
@@ -44,20 +45,36 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 │   ├── PlotService.cs            # Plotagem PDF via API ZWCAD
 │   └── PlotSettingsConfigurator.cs # Configura PlotSettings
 ├── Export/
-│   ├── DwgExportService.cs       # Exporta DWGs individuais
+│   ├── DwgExportService.cs       # Orquestra o lote de DWGs
+│   ├── DwgSheetExportService.cs  # Exporta uma única folha
+│   ├── Infrastructure/           # Operações CAD compartilhadas
+│   ├── LayoutIsolation/          # Isolamento do Paper Space e vista inicial
 │   └── ModelIsolation/           # Isolamento do Model por viewports
 ├── Navigation/
 │   └── SheetZoomService.cs       # Zoom para uma folha específica
 └── UI/
-    ├── PlotFolhasHandler.cs      # Orquestrador da janela
-    ├── PlotFolhasViewModel.cs    # ViewModel (INotifyPropertyChanged)
+    ├── PlotFolhasHandler.cs      # Ciclo de vida da janela e composição
+    ├── PlotFolhasViewModel.cs    # Estado geral da janela
+    ├── PlotSheetCollectionViewModel.cs # Filtro e resumo das folhas
+    ├── NamingStructureViewModel.cs # Estrutura de nomenclatura
+    ├── PlotOutputOptionsViewModel.cs # Opções de saída
+    ├── StampSelectionViewModel.cs # Seleção de selo/atributo
     ├── PlotFolhasWindow.xaml     # Layout WPF
     ├── PlotFolhasWindow.xaml.cs  # Code-behind
-    └── Services/
+    ├── Services/
         ├── PlotFolhasSessionService.cs   # Cria sessão (scan + nomes + dispositivos)
         ├── PlotFolhasNamingService.cs    # Aplica estrutura, normaliza, valida
         ├── PlotFolhasGenerationService.cs # Prepara e executa geração de arquivos
-        └── SeloBlockService.cs           # Scan de blocos, atributos, preenchimento de selo
+        ├── SeloBlockService.cs           # Fachada do recurso de selo
+        ├── SeloBlockCatalog.cs           # Catálogo de blocos
+        ├── BlockAttributeCatalog.cs      # Busca recursiva de atributos
+        ├── StampBlockLocator.cs          # Escolhe selo pela maior sobreposição
+        └── SeloAttributeWriter.cs        # Escreve e sincroniza atributos
+    └── Workflows/
+        ├── PlotFolhasNamingWorkflow.cs
+        ├── PlotFolhasZoomWorkflow.cs
+        ├── PlotFolhasGenerationWorkflow.cs
+        └── PlotFolhasGenerationRunner.cs
 ```
 
 ## 3. Fluxo de dados — da abertura à geração
@@ -91,18 +108,18 @@ PlotFolhasHandler.ShowWindow(session)
 
 | Evento | Handler | Ação |
 |--------|---------|------|
-| `ApplyStructuredNameRequested` | `OnApplyStructuredNameRequested` | `NamingService.ApplyStructure()` com suporte a campos sequenciais |
-| `FileNameEdited` | `OnFileNameEdited` | `NamingService.NormalizeEditedName()` |
-| `ZoomRequested` | `OnZoomRequested` | `SheetZoomService.ZoomTo()` |
-| `SaveNamesRequested` | `OnSaveNamesRequested` | Salva nomes + preenche selo (se configurado) |
-| `PlotRequested` | `OnPlotRequested` | Valida → Prepara → Preenche selo → Gera PDFs/DWGs |
-| `StampBlockChanged` | `OnStampBlockChanged` | `SeloBlockService.GetAttributeTags()` |
+| `ApplyStructuredNameRequested` | `PlotFolhasNamingWorkflow` | Aplica estrutura com suporte a campos sequenciais |
+| `FileNameEdited` | `PlotFolhasNamingWorkflow` | Normaliza o nome editado |
+| `ZoomRequested` | `PlotFolhasZoomWorkflow` | Executa `SheetZoomService.ZoomTo()` |
+| `SaveNamesRequested` | `PlotFolhasNamingWorkflow` | Salva nomes + preenche selo (se configurado) |
+| `PlotRequested` | `PlotFolhasGenerationWorkflow` | Valida, prepara e confirma a sobrescrita |
+| `StampBlockChanged` | `PlotFolhasNamingWorkflow` | Carrega tags pelo `SeloBlockService` |
 | `RefreshRequested` | `OnRefreshRequested` | Recria sessão e reabre janela |
 
 ### 3.4 Geração de arquivos
 
 ```
-OnPlotRequested()
+PlotFolhasGenerationWorkflow.Run()
   → window.CommitChanges()
   → NamingService.NormalizeAndValidate()
   → GenerationService.Prepare()
@@ -111,7 +128,7 @@ OnPlotRequested()
     → Cria pasta (ou subpasta Emissão NN)
     → Retorna PlotFolhasGenerationPreparation
   → Confirma sobrescrita se necessário
-  → ExecuteGeneration()
+  → PlotFolhasGenerationRunner.Run()
     → SeloBlockService.FillSeloAttributes()  // preenche atributo do selo
     → GenerationService.Execute()
       → PlotExecutionService.Execute()
@@ -127,39 +144,24 @@ OnPlotRequested()
 
 | Row | Conteúdo | Bindings/Controles |
 |-----|----------|-------------------|
-| 0 | Título + cards de resumo + botão Atualizar | `TotalSheetCount`, `PdfCount`, `DwgCount`, `IssueCount` |
-| 1 | Expander: Estrutura de nomenclatura | `NamingParts` (ItemsControl), `NamingSeparator`, botões ± campo, Aplicar |
-| 2 | Barra de filtro | `SearchText`, `ShowOnlyIssues`, `VisibleSheetCount`, botões PDF/DWG todas/nenhuma |
-| 3 | DataGrid principal | `SheetsView` (ICollectionView), colunas: PDF☑, DWG☑, #, Formato, Nome, Situação, Zoom |
-| 4 | Configurações de saída | `OutputFolder`, `DeviceName`, `CtbName`, `OverwriteExisting` |
-| 5 | Expander: Copiar nome para selo | `StampBlockNames`, `SelectedStampBlock`, `StampAttributes`, `SelectedStampAttribute` |
+| 0 | Título + cards de resumo + botão Atualizar | `SheetCollection.TotalCount/PdfCount/DwgCount/IssueCount` |
+| 1 | Expander: Estrutura de nomenclatura | `NamingStructure.Parts`, `NamingStructure.Separator`, botões ± campo, Aplicar |
+| 2 | Barra de filtro | `SheetCollection.SearchText/ShowOnlyIssues/VisibleCount`, botões PDF/DWG |
+| 3 | DataGrid principal | `SheetCollection.View`, colunas: PDF☑, DWG☑, #, Formato, Nome, Situação, Zoom |
+| 4 | Configurações de saída | `Output.OutputFolder/DeviceName/CtbName/OverwriteExisting` |
+| 5 | Expander: Copiar nome para selo | `StampSelection.BlockNames/SelectedBlock/Attributes/SelectedAttribute` |
 | 6 | Botões finais + status | `IsBusy`, `StatusMessage`, botões Salvar/Plotar |
 | overlay | Overlay de loading | Cobre toda a janela quando `IsBusy = true` |
 
-### 4.2 PlotFolhasViewModel — Propriedades
+### 4.2 ViewModels compostos
 
-| Binding | Tipo | Descrição |
-|---------|------|-----------|
-| `Sheets` | `ObservableCollection<FolhaInfo>` | Lista completa de folhas |
-| `SheetsView` | `ICollectionView` | View filtrada por SearchText e ShowOnlyIssues |
-| `SearchText` | `string` | Filtro de texto (nome, formato, status, sequência) |
-| `ShowOnlyIssues` | `bool` | Mostra só folhas com erro ou aviso |
-| `OutputFolder` | `string` | Pasta de saída |
-| `UseAutomaticEmissionFolder` | `bool` (ro) | true se usuário nunca alterou a pasta |
-| `AutomaticEmissionBaseFolder` | `string` | Pasta base para subpastas Emissão NN |
-| `DeviceName` | `string` | Plotter selecionado |
-| `CtbName` | `string` | CTB/STB selecionado |
-| `OverwriteExisting` | `bool` | Sobrescrever arquivos existentes |
-| `NamingSeparator` | `string` | Separador (1 char) entre partes do nome |
-| `NamingParts` | `ObservableCollection<NamingPartViewModel>` | Partes da estrutura de nome |
-| `StampBlockNames` | `ObservableCollection<string>` | Blocos com atributos disponíveis |
-| `StampAttributes` | `ObservableCollection<string>` | Atributos do bloco selecionado |
-| `SelectedStampBlock` | `string` | Bloco de selo escolhido |
-| `SelectedStampAttribute` | `string` | Atributo do selo escolhido |
-| `SelectedSheet` | `FolhaInfo` | Linha selecionada no DataGrid |
-| `IsBusy` | `bool` | Controla overlay de loading |
-| `StatusMessage` | `string` | Mensagem na barra de status |
-| `TotalSheetCount`, `PdfCount`, `DwgCount`, `IssueCount`, `VisibleSheetCount` | `int` | Cards de resumo |
+| ViewModel | Responsabilidade |
+|-----------|------------------|
+| `PlotFolhasViewModel` | Estado global: seleção, busy e mensagem de status |
+| `PlotSheetCollectionViewModel` | Folhas, filtro, seleção em massa e contadores |
+| `NamingStructureViewModel` | Separador, partes e flags sequenciais |
+| `PlotOutputOptionsViewModel` | Pasta, emissão automática, plotter, CTB e sobrescrita |
+| `StampSelectionViewModel` | Blocos de selo, atributos e seleções atuais |
 
 ### 4.3 NamingPartViewModel
 
@@ -197,6 +199,8 @@ event EventHandler RefreshRequested;               // botão "Atualizar"
 ### 5.1 FolhaNomenclaturaService
 
 Salva e carrega nomes no atributo `CNT_NOME_ARQUIVO` dos blocos CEP-*.
+As operações de baixo nível sobre `AttributeDefinition` e `AttributeReference` ficam em
+`FolhaNameAttributeStore`; o serviço coordena documento, lock, transação e folhas.
 
 **IMPORTANTE**:
 - Ao **salvar**, o nome é armazenado **sem extensão `.pdf`** (`Path.GetFileNameWithoutExtension`)
@@ -211,7 +215,12 @@ int SaveNames(Document, IEnumerable<FolhaInfo>)         // salva no DWG, retorna
 
 ### 5.2 SeloBlockService
 
-Gerencia o preenchimento de atributos de blocos de selo.
+É a fachada do preenchimento de atributos de blocos de selo. A implementação é dividida em:
+
+- `SeloBlockCatalog`: lista definições elegíveis;
+- `BlockAttributeCatalog`: percorre definições aninhadas sem repetir ciclos;
+- `StampBlockLocator`: escolhe a referência com maior sobreposição com a folha;
+- `SeloAttributeWriter`: grava valores e solicita o `ATTSYNC`.
 
 **Regras**:
 - `GetBlockNames()` escaneia a BlockTable e filtra blocos que têm `AttributeDefinition`
@@ -279,7 +288,8 @@ Escaneia o layout ativo por blocos CEP-*.
 | `ArquivoNomeService` | Sanitiza partes, valida nomes, constrói nome estruturado. **Nomes sempre terminam com `.pdf`** |
 | `PlotService` | Lista dispositivos/CTBs, executa plotagem PDF folha a folha |
 | `PlotExecutionService` | Orquestra SaveNames → Plot PDF → Export DWG |
-| `DwgExportService` | Exporta DWG individual com isolamento de Model por viewport |
+| `DwgExportService` | Orquestra o lote e delega cada folha ao `DwgSheetExportService` |
+| `DwgSheetExportService` | Clona o banco, isola Layout/Model, prepara a vista e publica o arquivo |
 | `SheetZoomService` | Navega/Zoom para os limites de uma folha |
 | `FolhaFormatCatalog` | Catálogo estático de formatos e dimensões |
 | `NamingStandardParser` | Detecta separador e parseia nome em partes |
@@ -292,16 +302,16 @@ Escaneia o layout ativo por blocos CEP-*.
 
 - A Window **nunca** chama serviços diretamente
 - A Window expõe **eventos** que o Handler assina
-- O Handler lê propriedades da Window e chama serviços
-- O Handler atualiza a Window via métodos públicos (`SetBusy`, `SetStatusMessage`, `RefreshSheets`, etc.)
+- O Handler cuida do ciclo de vida e delega os eventos aos workflows
+- Os workflows leem propriedades e atualizam a Window por métodos públicos
 
 ### 6.2 ViewModel
 
-- Implementa `INotifyPropertyChanged`
-- Usa `SetField<T>()` genérico para evitar boilerplate
+- Os ViewModels herdam `ObservableViewModel`, que implementa `INotifyPropertyChanged`
+- Cada ViewModel representa um grupo coeso de bindings
 - `ObservableCollection<T>` para listas bindáveis
 - `ICollectionView` para filtro da DataGrid
-- `NamingPartViewModel` é uma classe interna para as partes da estrutura de nome
+- `NamingPartViewModel` representa uma parte da estrutura de nome
 
 ### 6.3 Segurança com o ZWCAD
 
@@ -323,10 +333,10 @@ Escaneia o layout ativo por blocos CEP-*.
 
 ### 6.5 Como adicionar uma nova funcionalidade ao form
 
-1. **Adicionar binding no ViewModel** — propriedade com `SetField<T>()` + `INotifyPropertyChanged`
+1. **Adicionar binding no ViewModel responsável** — folha, nomenclatura, saída, selo ou estado global
 2. **Adicionar controle no XAML** — manter a paleta de cores (`AccentBrush: #F08F38`, `BorderBrush: #C0C0C0`)
-3. **Se precisar de evento**, adicionar `EventHandler` na Window e assinar no Handler
-4. **Se precisar de serviço**, criar em `UI/Services/` e compor no construtor do Handler
+3. **Se precisar de evento**, adicionar `EventHandler` na Window e delegar pelo Handler
+4. **Se for um fluxo de UI**, criar/estender um workflow; acesso CAD reutilizável fica em `UI/Services/`
 5. **Adicionar .cs ao .csproj** — projetos clássicos exigem inclusão explícita
 6. **Nunca alterar** `StarterApplication.cs`, `RibbonHost.cs` ou a infraestrutura central
 
@@ -366,6 +376,24 @@ Escaneia o layout ativo por blocos CEP-*.
 - Busca o bloco de selo no Paper Space por interseção geométrica com a folha
 - Pega o bloco com maior área de sobreposição
 - Após preencher, chama `ATTSYNC N nomeDoBloco` para sincronizar
+
+### 7.4 Exportação DWG isolada
+
+Fluxo por folha:
+
+1. `DwgDatabaseCloner` cria um banco independente com `Wblock()`;
+2. `DwgLayoutIsolator` mantém a folha, entidades pertencentes a ela e suas viewports;
+3. `ViewportModelIsolator` calcula um plano antes de apagar qualquer entidade do Model;
+4. `DwgOpeningViewService` deixa o Layout ativo e centralizado na folha;
+5. `DwgOutputFile` salva em temporário, publica no destino e verifica o resultado.
+
+Política obrigatória do Model:
+
+- nenhuma viewport de Model na folha: apagar todo o Model;
+- uma ou mais viewports válidas: manter entidades cujos limites intersectem as regiões projetadas;
+- viewports válidas, mas nenhuma entidade encontrada: preservar o Model integralmente por segurança;
+- entidade sem `GeometricExtents`: preservar a entidade;
+- viewport em perspectiva ou transformação inválida: cancelar antes de alterar o Model clonado.
 
 ## 8. Checklist para agentes
 

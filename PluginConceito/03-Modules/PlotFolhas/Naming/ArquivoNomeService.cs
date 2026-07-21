@@ -47,7 +47,7 @@ namespace PluginConceito.Modules.PlotFolhas
             return result.ToString().Trim('_', '.');
         }
 
-        public string BuildAutomaticName(string baseName, FolhaInfo sheet)
+        public string BuildAutomaticName(string baseName)
         {
             return NormalizeManualName(baseName);
         }

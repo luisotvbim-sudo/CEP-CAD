@@ -8,15 +8,12 @@ namespace PluginConceito.Modules.PlotFolhas
         private string _value;
         private bool _isSequential;
 
-        public NamingPartViewModel(int position, string value)
+        public NamingPartViewModel(string value)
         {
-            Position = position;
             _value = value ?? string.Empty;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public int Position { get; }
 
         public string Value
         {

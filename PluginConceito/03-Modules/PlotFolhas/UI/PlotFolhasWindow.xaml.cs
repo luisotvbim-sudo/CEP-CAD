@@ -49,20 +49,20 @@ namespace PluginConceito.Modules.PlotFolhas
         public event EventHandler StampBlockChanged;
         public event EventHandler RefreshRequested;
 
-        public string NamingSeparator { get { return _viewModel.NamingSeparator; } }
-        public IReadOnlyList<string> NamingParts { get { return _viewModel.GetNamingParts(); } }
-        public IReadOnlyList<bool> NamingPartSequential { get { return _viewModel.GetNamingPartSequential(); } }
-        public string OutputFolder { get { return _viewModel.OutputFolder; } }
-        public bool UseAutomaticEmissionFolder { get { return _viewModel.UseAutomaticEmissionFolder; } }
-        public string AutomaticEmissionBaseFolder { get { return _viewModel.AutomaticEmissionBaseFolder; } }
-        public string DeviceName { get { return _viewModel.DeviceName; } }
-        public string CtbName { get { return _viewModel.CtbName; } }
-        public bool OverwriteExisting { get { return _viewModel.OverwriteExisting; } }
+        public string NamingSeparator { get { return _viewModel.NamingStructure.Separator; } }
+        public IReadOnlyList<string> NamingParts { get { return _viewModel.NamingStructure.GetValues(); } }
+        public IReadOnlyList<bool> NamingPartSequential { get { return _viewModel.NamingStructure.GetSequentialFlags(); } }
+        public string OutputFolder { get { return _viewModel.Output.OutputFolder; } }
+        public bool UseAutomaticEmissionFolder { get { return _viewModel.Output.UseAutomaticEmissionFolder; } }
+        public string AutomaticEmissionBaseFolder { get { return _viewModel.Output.AutomaticEmissionBaseFolder; } }
+        public string DeviceName { get { return _viewModel.Output.DeviceName; } }
+        public string CtbName { get { return _viewModel.Output.CtbName; } }
+        public bool OverwriteExisting { get { return _viewModel.Output.OverwriteExisting; } }
         public FolhaInfo SelectedSheet { get { return _viewModel.SelectedSheet; } }
         public FolhaInfo EditedSheet { get; private set; }
-        public IReadOnlyList<FolhaInfo> Sheets { get { return _viewModel.Sheets.ToList(); } }
-        public string SelectedStampBlock { get { return _viewModel.SelectedStampBlock; } }
-        public string SelectedStampAttribute { get { return _viewModel.SelectedStampAttribute; } }
+        public IReadOnlyList<FolhaInfo> Sheets { get { return _viewModel.SheetCollection.Items.ToList(); } }
+        public string SelectedStampBlock { get { return _viewModel.StampSelection.SelectedBlock; } }
+        public string SelectedStampAttribute { get { return _viewModel.StampSelection.SelectedAttribute; } }
 
         public void CommitChanges()
         {
@@ -73,7 +73,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void RefreshSheets()
         {
-            _viewModel.Refresh();
+            _viewModel.SheetCollection.Refresh();
             SheetsGrid.Items.Refresh();
         }
 
@@ -102,12 +102,12 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void SetResolvedOutputFolder(string outputFolder)
         {
-            _viewModel.SetResolvedOutputFolder(outputFolder);
+            _viewModel.Output.SetResolvedOutputFolder(outputFolder);
         }
 
         public void SetStampAttributes(IEnumerable<string> attributes)
         {
-            _viewModel.SetStampAttributes(attributes);
+            _viewModel.StampSelection.SetAttributes(attributes);
         }
 
         public void ProcessPendingUiMessages()
@@ -131,10 +131,10 @@ namespace PluginConceito.Modules.PlotFolhas
             _viewModel.RemoveNamingPart();
         }
 
-        private void SelectAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SetAllPdf(true); }
-        private void ClearAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SetAllPdf(false); }
-        private void SelectAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SetAllDwg(true); }
-        private void ClearAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SetAllDwg(false); }
+        private void SelectAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(true); }
+        private void ClearAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(false); }
+        private void SelectAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(true); }
+        private void ClearAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(false); }
 
         private void ZoomSheetClick(object sender, RoutedEventArgs e)
         {
@@ -163,7 +163,7 @@ namespace PluginConceito.Modules.PlotFolhas
                 dialog.ShowNewFolderButton = true;
                 if (dialog.ShowDialog() == WinForms.DialogResult.OK)
                 {
-                    _viewModel.ChooseOutputFolder(dialog.SelectedPath);
+                    _viewModel.Output.ChooseOutputFolder(dialog.SelectedPath);
                 }
             }
         }

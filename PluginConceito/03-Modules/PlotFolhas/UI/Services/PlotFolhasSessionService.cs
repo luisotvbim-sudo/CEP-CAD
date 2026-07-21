@@ -43,7 +43,7 @@ namespace PluginConceito.Modules.PlotFolhas
             foreach (FolhaInfo sheet in sheets)
             {
                 sheet.NomeArquivo = string.IsNullOrWhiteSpace(sheet.NomeArquivo)
-                    ? _nameService.BuildAutomaticName(baseName, sheet)
+                    ? _nameService.BuildAutomaticName(baseName)
                     : _nameService.NormalizeManualName(sheet.NomeArquivo);
             }
             _nameService.ValidateNames(sheets);

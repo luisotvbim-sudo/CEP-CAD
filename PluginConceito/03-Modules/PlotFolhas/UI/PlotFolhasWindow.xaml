@@ -116,16 +116,16 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Atualizar" Click="RefreshClick" Margin="0,0,10,0" ToolTip="Recarrega as folhas e informações do layout ativo." />
                 <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="Folhas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding TotalSheetCount}" FontWeight="Bold"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="Folhas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.TotalCount}" FontWeight="Bold"/></StackPanel>
                 </Border>
                 <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="PDF  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding PdfCount}" FontWeight="Bold"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="PDF  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.PdfCount}" FontWeight="Bold"/></StackPanel>
                 </Border>
                 <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="DWG  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding DwgCount}" FontWeight="Bold"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="DWG  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.DwgCount}" FontWeight="Bold"/></StackPanel>
                 </Border>
                 <Border Style="{StaticResource SummaryCard}" Margin="0">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="Alertas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding IssueCount}" FontWeight="Bold" Foreground="#A35718"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="Alertas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.IssueCount}" FontWeight="Bold" Foreground="#A35718"/></StackPanel>
                 </Border>
             </StackPanel>
         </Grid>
@@ -140,7 +140,7 @@
                     <StackPanel>
                         <TextBlock Text="Monte um padrão e aplique a todas as folhas. O nome individual continua editável na tabela." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8" />
                         <StackPanel Orientation="Horizontal">
-                            <ItemsControl ItemsSource="{Binding NamingParts}">
+                            <ItemsControl ItemsSource="{Binding NamingStructure.Parts}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
@@ -151,13 +151,13 @@
                                                 <TextBox Width="72" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
                                                 <CheckBox IsChecked="{Binding IsSequential}" HorizontalAlignment="Center" FontSize="10" Margin="0,4,0,0" ToolTip="Numeração sequencial">Seq</CheckBox>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding DataContext.NamingSeparator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="5,7,5,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#F08F38" />
+                                            <TextBlock Text="{Binding DataContext.NamingStructure.Separator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="5,7,5,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#F08F38" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <TextBlock Text="Separador" Margin="8,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
-                            <TextBox Width="38" MaxLength="1" TextAlignment="Center" Text="{Binding NamingSeparator, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Width="38" MaxLength="1" TextAlignment="Center" Text="{Binding NamingStructure.Separator, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -177,10 +177,10 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Pesquisar por número, formato, nome ou status" />
-            <CheckBox Grid.Column="1" Content="Somente alertas" IsChecked="{Binding ShowOnlyIssues}" VerticalAlignment="Center" Margin="12,0,18,0" />
+            <TextBox Grid.Column="0" Text="{Binding SheetCollection.SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Pesquisar por número, formato, nome ou status" />
+            <CheckBox Grid.Column="1" Content="Somente alertas" IsChecked="{Binding SheetCollection.ShowOnlyIssues}" VerticalAlignment="Center" Margin="12,0,18,0" />
             <TextBlock Grid.Column="2" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}">
-                <Run Text="Exibindo "/><Run Text="{Binding VisibleSheetCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" folha(s)"/>
+                <Run Text="Exibindo "/><Run Text="{Binding SheetCollection.VisibleCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" folha(s)"/>
             </TextBlock>
             <StackPanel Grid.Column="4" Orientation="Horizontal">
                 <Button Content="PDF: todas" Click="SelectAllPdfClick" Margin="0,0,6,0" />
@@ -192,7 +192,7 @@
 
         <Border Grid.Row="3" Style="{StaticResource SectionBorder}">
             <DataGrid x:Name="SheetsGrid"
-                      ItemsSource="{Binding SheetsView}"
+                      ItemsSource="{Binding SheetCollection.View}"
                       SelectedItem="{Binding SelectedSheet}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False" CanUserDeleteRows="False"
@@ -243,15 +243,15 @@
                 </Grid.RowDefinitions>
                 <TextBlock Text="Pasta" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
                 <TextBox Grid.Column="1"
-                         Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding Output.OutputFolder, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Se esta pasta não for alterada, será criada automaticamente uma subpasta Emissão NN." />
                 <Button Grid.Column="2" Content="Escolher…" Click="BrowseFolderClick" Margin="7,0,18,0" />
                 <TextBlock Grid.Column="3" Text="CTB / STB" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
-                <ComboBox Grid.Column="4" ItemsSource="{Binding PlotStyles}" SelectedItem="{Binding CtbName}" />
+                <ComboBox Grid.Column="4" ItemsSource="{Binding Output.PlotStyles}" SelectedItem="{Binding Output.CtbName}" />
 
                 <TextBlock Grid.Row="1" Text="Plotter" VerticalAlignment="Center" Margin="0,9,0,0" Foreground="{StaticResource MutedBrush}" />
-                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding DeviceName}" Margin="0,9,0,0" />
-                <CheckBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Sobrescrever arquivos existentes" IsChecked="{Binding OverwriteExisting}" VerticalAlignment="Center" Margin="0,9,0,0" />
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Output.Devices}" SelectedItem="{Binding Output.DeviceName}" Margin="0,9,0,0" />
+                <CheckBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Sobrescrever arquivos existentes" IsChecked="{Binding Output.OverwriteExisting}" VerticalAlignment="Center" Margin="0,9,0,0" />
             </Grid>
         </Border>
 
@@ -266,8 +266,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Bloco" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
                     <ComboBox Grid.Column="1"
-                              ItemsSource="{Binding StampBlockNames}"
-                              SelectedItem="{Binding SelectedStampBlock}"
+                              ItemsSource="{Binding StampSelection.BlockNames}"
+                              SelectedItem="{Binding StampSelection.SelectedBlock}"
                               SelectionChanged="OnStampBlockSelectionChanged"
                               IsEditable="True"
                               IsTextSearchEnabled="True"
@@ -275,8 +275,8 @@
                     <TextBlock Grid.Column="2" Text="Atributo" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="{StaticResource MutedBrush}" />
                     <ComboBox Grid.Column="3"
                               x:Name="StampAttributeCombo"
-                              ItemsSource="{Binding StampAttributes}"
-                              SelectedItem="{Binding SelectedStampAttribute, Mode=TwoWay}"
+                              ItemsSource="{Binding StampSelection.Attributes}"
+                              SelectedItem="{Binding StampSelection.SelectedAttribute, Mode=TwoWay}"
                               ToolTip="Escolha qual atributo do selo receberá o nome de cada folha." />
                 </Grid>
             </Expander>

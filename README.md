@@ -260,6 +260,7 @@ Dentro de um módulo maior, prefira separar por intenção:
 - `Naming`: regras de nomenclatura;
 - `Plotting` ou `Export`: geração de saídas;
 - `Export/ModelIsolation`: isolamento do Model pelas regiões visíveis das viewports;
+- `Export/LayoutIsolation`: isolamento da folha no Paper Space e preparação da vista inicial;
 - `Navigation`: interação de navegação/zoom;
 - `UI`: janela, view model e handlers de eventos;
 - `UI/Services`: casos de uso acionados pela interface.
@@ -314,7 +315,7 @@ O cabeçalho estruturado suporta até dez partes e detecta separadores existente
 
 #### 3. Interface
 
-`PlotFolhasHandler` cria uma janela modeless com as folhas, dispositivos, estilos de plotagem, pasta e opções de saída. Ele coordena:
+`PlotFolhasHandler` cria a janela modeless e controla seu ciclo de vida. Workflows especializados coordenam:
 
 - aplicar nome estruturado;
 - editar e validar nomes individuais;
