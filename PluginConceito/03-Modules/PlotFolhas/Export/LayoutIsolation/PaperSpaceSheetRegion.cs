@@ -9,18 +9,17 @@ namespace PluginConceito.Modules.PlotFolhas
         internal const double Tolerance = 1.0;
 
         private readonly Polyline _boundary;
+        private readonly Extents2d _extents;
 
         public PaperSpaceSheetRegion(Extents2d extents)
         {
-            Extents = extents;
+            _extents = extents;
             _boundary = CreateBoundary(extents);
         }
 
-        public Extents2d Extents { get; }
-
         public bool Contains(Point2d point)
         {
-            return Extents2dRelations.Contains(Extents, point, Tolerance);
+            return Extents2dRelations.Contains(_extents, point, Tolerance);
         }
 
         public bool Contains(Point3d point)
@@ -35,7 +34,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
             Extents2d entityExtents;
             if (!CadEntityAccess.TryGetExtents2d(entity, out entityExtents) ||
-                !Extents2dRelations.Intersects(entityExtents, Extents, Tolerance))
+                !Extents2dRelations.Intersects(entityExtents, _extents, Tolerance))
             {
                 return false;
             }
@@ -43,9 +42,9 @@ namespace PluginConceito.Modules.PlotFolhas
             if (Contains(Extents2dRelations.Center(entityExtents)) ||
                 Extents2dRelations.Contains(
                     entityExtents,
-                    Extents2dRelations.Center(Extents),
+                    Extents2dRelations.Center(_extents),
                     Tolerance) ||
-                Extents2dRelations.AnyCornerInside(entityExtents, Extents, Tolerance))
+                Extents2dRelations.AnyCornerInside(entityExtents, _extents, Tolerance))
             {
                 return true;
             }

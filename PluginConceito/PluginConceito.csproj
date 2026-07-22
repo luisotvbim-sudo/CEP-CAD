@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>debug-codex\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -99,7 +99,9 @@
     <Compile Include="03-Modules\PlotFolhas\Export\DwgOutputFile.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgSheetExportService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\Infrastructure\CadEntityAccess.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\Infrastructure\DatabaseLayerEditScope.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\Infrastructure\Extents2dRelations.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\Infrastructure\PaperSpaceBaseViewportResolver.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\DwgLayoutIsolationResult.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\DwgLayoutIsolator.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\DwgOpeningViewService.cs" />
@@ -108,21 +110,17 @@
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\PaperSpaceViewportSelection.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\PaperSpaceViewportSelector.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\LayoutIsolation\SelectedSheetLocator.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\Geometry2dRelations.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelEntityExtentsProjector.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelEntityIsolationPlanner.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelIsolationPlan.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\CurveAtomicSplitter.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\CurvePieceClassifier.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\CurveSplitPointCollector.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelCurveClipper.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelEntityIsolator.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelEntityVisibility.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelIsolationResult.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelSpaceEditor.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ModelSpaceEntityCatalog.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\PaperSpaceViewport.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\PaperSpaceViewportCatalog.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\Polygon2dRegion.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportModelIsolator.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportBoundaryReader.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportBoundaryProjector.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportModelRegion.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportModelRegionFactory.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\ViewportModelRegionProvider.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\ModelIsolation\VisibleViewportRegionProvider.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\BlockNameHelper.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\FolhaFormatCatalog.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\FolhaInfo.cs" />
@@ -146,12 +144,15 @@
     <Compile Include="03-Modules\PlotFolhas\UI\PlotFolhasWindow.xaml.cs">
       <DependentUpon>PlotFolhasWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="03-Modules\PlotFolhas\UI\Services\ActiveLayoutPaperSpace.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\BlockAttributeCatalog.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\PlotFolhasSessionService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\SeloAttributeWriter.cs" />
+    <Compile Include="03-Modules\PlotFolhas\UI\Services\SeloAttributeReader.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\SeloBlockCatalog.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\SeloBlockService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\StampBlockLocator.cs" />
+    <Compile Include="03-Modules\PlotFolhas\UI\Services\StampAttributeResolver.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\PlotFolhasNamingService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\PlotFolhasGenerationService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Workflows\PlotFolhasGenerationRunner.cs" />

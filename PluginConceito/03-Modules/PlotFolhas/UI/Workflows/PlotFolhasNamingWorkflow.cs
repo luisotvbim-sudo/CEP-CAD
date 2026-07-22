@@ -95,6 +95,49 @@ namespace PluginConceito.Modules.PlotFolhas
             }
         }
 
+        public void LoadNamesFromStamp(PlotFolhasWindow window)
+        {
+            if (window == null) return;
+
+            if (string.IsNullOrWhiteSpace(window.SelectedStampBlock) ||
+                string.IsNullOrWhiteSpace(window.SelectedStampAttribute))
+            {
+                window.SetStatusMessage(
+                    "Escolha o bloco e o atributo que fornecerão os nomes.");
+                return;
+            }
+
+            try
+            {
+                window.CommitChanges();
+                int copied = _seloService.CopyAttributeValuesToSheetNames(
+                    window.Sheets,
+                    window.SelectedStampBlock,
+                    window.SelectedStampAttribute);
+                _namingService.NormalizeAndValidate(window.Sheets);
+                window.RefreshSheets();
+                window.SetStatusMessage(string.Format(
+                    "Nome carregado do atributo {0} em {1} de {2} folha(s).",
+                    window.SelectedStampAttribute,
+                    copied,
+                    window.Sheets.Count));
+            }
+            catch (Exception exception)
+            {
+                _telemetry.TrackException(
+                    "SeloBlock.CopyAttributeValuesToSheetNames",
+                    exception);
+                window.SetStatusMessage(
+                    "Não foi possível carregar os nomes do selo: " + exception.Message);
+                MessageBox.Show(
+                    window,
+                    exception.Message,
+                    "Carregar nomes do selo",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
         private void SaveValidatedNames(PlotFolhasWindow window)
         {
             try

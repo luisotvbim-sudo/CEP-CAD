@@ -47,14 +47,20 @@ namespace PluginConceito.Modules.PlotFolhas
                     transaction,
                     sheetRegion);
 
-                DwgLayoutIsolationResult result = EraseUnrelatedEntities(
-                    entityIds,
-                    selectedSheetId,
-                    viewports,
-                    transaction,
-                    sheetRegion);
-                transaction.Commit();
-                return result;
+                using (var layerEditScope = new DatabaseLayerEditScope(
+                    database,
+                    transaction))
+                {
+                    DwgLayoutIsolationResult result = EraseUnrelatedEntities(
+                        entityIds,
+                        selectedSheetId,
+                        viewports,
+                        transaction,
+                        sheetRegion);
+                    layerEditScope.Restore();
+                    transaction.Commit();
+                    return result;
+                }
             }
         }
 

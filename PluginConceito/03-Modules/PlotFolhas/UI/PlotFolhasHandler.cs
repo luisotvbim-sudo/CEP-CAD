@@ -146,6 +146,7 @@ namespace PluginConceito.Modules.PlotFolhas
             window.SaveNamesRequested += OnSaveNamesRequested;
             window.PlotRequested += OnPlotRequested;
             window.StampBlockChanged += OnStampBlockChanged;
+            window.LoadNamesFromStampRequested += OnLoadNamesFromStampRequested;
             window.RefreshRequested += OnRefreshRequested;
             window.Closed += OnWindowClosed;
         }
@@ -178,6 +179,11 @@ namespace PluginConceito.Modules.PlotFolhas
         private void OnStampBlockChanged(object sender, EventArgs e)
         {
             _namingWorkflow.LoadStampAttributes(_window);
+        }
+
+        private void OnLoadNamesFromStampRequested(object sender, EventArgs e)
+        {
+            _namingWorkflow.LoadNamesFromStamp(_window);
         }
 
         private void OnRefreshRequested(object sender, EventArgs e)

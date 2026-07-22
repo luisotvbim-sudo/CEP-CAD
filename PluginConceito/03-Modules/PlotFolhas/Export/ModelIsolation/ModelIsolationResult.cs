@@ -1,22 +1,15 @@
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal enum ModelIsolationOutcome
-    {
-        Isolated,
-        ModelClearedWithoutViewport,
-        ModelPreservedWithoutMatches
-    }
-
     internal sealed class ModelIsolationResult
     {
-        public ModelIsolationOutcome Outcome { get; internal set; }
-
-        public int ViewportsConsidered { get; internal set; }
-
-        public int EntitiesKept { get; internal set; }
-
-        public int EntitiesErased { get; internal set; }
-
-        public int EntitiesKeptWithoutExtents { get; internal set; }
+        public string LayoutName { get; set; }
+        public int ViewportsConsidered { get; set; }
+        public int EntitiesKept { get; set; }
+        public int EntitiesErased { get; set; }
+        public int CurvesSplit { get; set; }
+        public int CurvePiecesCreated { get; set; }
+        public int CurvesNotSplit { get; set; }
+        public int BlockReferencesKept { get; set; }
+        public int EntitiesErasedByVisibility { get; set; }
     }
 }

@@ -45,7 +45,7 @@ namespace PluginConceito.Modules.PlotFolhas
                 var paperSpace = (BlockTableRecord)transaction.GetObject(
                     layout.BlockTableRecordId,
                     OpenMode.ForRead);
-                ObjectId baseViewportId = PaperSpaceViewportSelector.FindBaseViewportId(
+                ObjectId baseViewportId = PaperSpaceBaseViewportResolver.Resolve(
                     paperSpace.Cast<ObjectId>(),
                     transaction);
                 FitViewport(baseViewportId, transaction, sheet);
