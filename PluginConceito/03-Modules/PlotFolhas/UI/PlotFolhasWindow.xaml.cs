@@ -47,6 +47,7 @@ namespace PluginConceito.Modules.PlotFolhas
         public event EventHandler SaveNamesRequested;
         public event EventHandler PlotRequested;
         public event EventHandler StampBlockChanged;
+        public event EventHandler LoadNamesFromStampRequested;
         public event EventHandler RefreshRequested;
 
         public string NamingSeparator { get { return _viewModel.NamingStructure.Separator; } }
@@ -171,6 +172,11 @@ namespace PluginConceito.Modules.PlotFolhas
         private void OnStampBlockSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Raise(StampBlockChanged);
+        }
+
+        private void LoadNamesFromStampClick(object sender, RoutedEventArgs e)
+        {
+            Raise(LoadNamesFromStampRequested);
         }
 
         private void RefreshClick(object sender, RoutedEventArgs e)

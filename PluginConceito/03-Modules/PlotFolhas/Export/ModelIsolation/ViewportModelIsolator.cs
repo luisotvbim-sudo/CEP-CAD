@@ -6,60 +6,75 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class ViewportModelIsolator
     {
-        private readonly ViewportModelRegionProvider _regionProvider =
-            new ViewportModelRegionProvider();
-        private readonly ModelEntityIsolationPlanner _planner =
-            new ModelEntityIsolationPlanner();
-        private readonly ModelSpaceEditor _modelSpaceEditor =
-            new ModelSpaceEditor();
+        private readonly VisibleViewportRegionProvider _regionProvider;
+        private readonly ModelEntityIsolator _entityIsolator;
 
-        public ModelIsolationResult Isolate(Database database, string layoutName)
+        public ViewportModelIsolator()
+        {
+            _regionProvider = new VisibleViewportRegionProvider();
+            _entityIsolator = new ModelEntityIsolator();
+        }
+
+        public ModelIsolationResult Isolate(
+            Database database,
+            string layoutName,
+            Action<string> report = null)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (string.IsNullOrWhiteSpace(layoutName))
-                throw new ArgumentException("Layout obrigatório.", nameof(layoutName));
+                throw new ArgumentException("Layout obrigatorio.", nameof(layoutName));
 
             using (Transaction transaction = database.TransactionManager.StartTransaction())
             {
-                IReadOnlyList<ViewportModelRegion> regions = _regionProvider.Create(
+                report = report ?? delegate { };
+                List<ViewportModelRegion> regions = _regionProvider.Create(
                     database,
                     layoutName,
-                    transaction);
-                IReadOnlyList<ObjectId> entityIds = ModelSpaceEntityCatalog.Snapshot(
-                    database,
-                    transaction);
-
-                ModelIsolationResult result = IsolateEntities(
                     transaction,
-                    entityIds,
-                    regions);
-                transaction.Commit();
-                return result;
+                    report);
+
+                try
+                {
+                    using (var layerEditScope = new DatabaseLayerEditScope(
+                        database,
+                        transaction))
+                    {
+                        BlockTableRecord modelSpace = OpenModelSpace(database, transaction);
+                        var result = new ModelIsolationResult
+                        {
+                            LayoutName = layoutName,
+                            ViewportsConsidered = regions.Count
+                        };
+
+                        _entityIsolator.Isolate(
+                            modelSpace,
+                            transaction,
+                            regions,
+                            result,
+                            report,
+                            layerEditScope);
+                        layerEditScope.Restore();
+                        transaction.Commit();
+                        return result;
+                    }
+                }
+                finally
+                {
+                    foreach (ViewportModelRegion region in regions) region.Dispose();
+                }
             }
         }
 
-        private ModelIsolationResult IsolateEntities(
-            Transaction transaction,
-            IReadOnlyList<ObjectId> entityIds,
-            IReadOnlyList<ViewportModelRegion> regions)
+        private static BlockTableRecord OpenModelSpace(
+            Database database,
+            Transaction transaction)
         {
-            if (regions.Count == 0)
-                return _modelSpaceEditor.Clear(transaction, entityIds);
-
-            ModelIsolationPlan plan = _planner.Create(transaction, entityIds, regions);
-            if (plan.RequiresSafetyPreservation)
-            {
-                return _modelSpaceEditor.Preserve(
-                    transaction,
-                    entityIds,
-                    regions.Count,
-                    plan.EntitiesKeptWithoutExtents);
-            }
-
-            return _modelSpaceEditor.Apply(
-                transaction,
-                plan,
-                regions.Count);
+            var blockTable = (BlockTable)transaction.GetObject(
+                database.BlockTableId,
+                OpenMode.ForRead);
+            return (BlockTableRecord)transaction.GetObject(
+                blockTable[BlockTableRecord.ModelSpace],
+                OpenMode.ForWrite);
         }
     }
 }

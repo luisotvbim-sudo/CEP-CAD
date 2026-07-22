@@ -264,6 +264,10 @@
                         <ColumnDefinition Width="85" />
                         <ColumnDefinition Width="1.5*" />
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <TextBlock Text="Bloco" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
                     <ComboBox Grid.Column="1"
                               ItemsSource="{Binding StampSelection.BlockNames}"
@@ -278,6 +282,17 @@
                               ItemsSource="{Binding StampSelection.Attributes}"
                               SelectedItem="{Binding StampSelection.SelectedAttribute, Mode=TwoWay}"
                               ToolTip="Escolha qual atributo do selo receberá o nome de cada folha." />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="3"
+                               Text="Ao salvar ou gerar, o nome vai para o atributo selecionado."
+                               Margin="0,10,12,0"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <Button Grid.Row="1" Grid.Column="3"
+                            Content="Usar atributo nos nomes"
+                            Click="LoadNamesFromStampClick"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Right"
+                            ToolTip="Lê esse atributo do bloco correspondente dentro de cada folha e usa seu valor como nome do arquivo." />
                 </Grid>
             </Expander>
         </Border>

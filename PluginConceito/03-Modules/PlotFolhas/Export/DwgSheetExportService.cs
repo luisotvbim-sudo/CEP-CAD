@@ -37,7 +37,10 @@ namespace PluginConceito.Modules.PlotFolhas
                 DwgLayoutIsolationResult layout = _layoutIsolator.Isolate(database, sheet);
                 ReportLayout(sheet, layout, report);
 
-                ModelIsolationResult model = _modelIsolator.Isolate(database, sheet.LayoutName);
+                ModelIsolationResult model = _modelIsolator.Isolate(
+                    database,
+                    sheet.LayoutName,
+                    report);
                 ReportModel(sheet, model, report);
 
                 _layoutIsolator.PrepareOpeningView(database, sheet);
@@ -69,31 +72,26 @@ namespace PluginConceito.Modules.PlotFolhas
             ModelIsolationResult result,
             Action<string> report)
         {
-            if (result.Outcome == ModelIsolationOutcome.ModelClearedWithoutViewport)
+            if (result.ViewportsConsidered == 0)
             {
                 report(string.Format(
-                    "DWG folha {0}: Model esvaziado; nenhuma viewport de Model pertence à folha, apagados={1}.",
+                    "DWG folha {0}: Model esvaziado; nenhuma viewport de Model válida, apagados={1}.",
                     sheet.Sequencia,
                     result.EntitiesErased));
                 return;
             }
 
-            if (result.Outcome == ModelIsolationOutcome.ModelPreservedWithoutMatches)
-            {
-                report(string.Format(
-                    "DWG folha {0}: Model preservado integralmente; as regiões não encontraram elementos, mantidos={1}.",
-                    sheet.Sequencia,
-                    result.EntitiesKept));
-                return;
-            }
-
             report(string.Format(
-                "DWG folha {0}: Model isolado; regiões={1}, mantidos={2}, apagados={3}, sem limites={4}.",
+                "DWG folha {0}: Model isolado; viewports={1}, mantidos={2}, apagados={3}, invisíveis por layer/viewport={4}, curvas cortadas={5}, trechos criados={6}, falhas de corte={7}, blocos/Xrefs mantidos={8}.",
                 sheet.Sequencia,
                 result.ViewportsConsidered,
                 result.EntitiesKept,
                 result.EntitiesErased,
-                result.EntitiesKeptWithoutExtents));
+                result.EntitiesErasedByVisibility,
+                result.CurvesSplit,
+                result.CurvePiecesCreated,
+                result.CurvesNotSplit,
+                result.BlockReferencesKept));
         }
     }
 }

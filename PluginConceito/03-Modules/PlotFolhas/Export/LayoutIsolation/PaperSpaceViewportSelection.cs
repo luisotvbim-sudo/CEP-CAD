@@ -7,13 +7,12 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         private readonly HashSet<ObjectId> _viewportIds = new HashSet<ObjectId>();
         private readonly HashSet<ObjectId> _clipEntityIds = new HashSet<ObjectId>();
+        private readonly ObjectId _baseViewportId;
 
         public PaperSpaceViewportSelection(ObjectId baseViewportId)
         {
-            BaseViewportId = baseViewportId;
+            _baseViewportId = baseViewportId;
         }
-
-        public ObjectId BaseViewportId { get; }
 
         public int ModelViewportCount { get; private set; }
 
@@ -32,7 +31,7 @@ namespace PluginConceito.Modules.PlotFolhas
             _viewportIds.Add(entityId);
             AddClipEntity(viewport);
 
-            if (entityId != BaseViewportId && viewport.On && !viewport.PerspectiveOn)
+            if (entityId != _baseViewportId && viewport.On && !viewport.PerspectiveOn)
                 ModelViewportCount++;
         }
 

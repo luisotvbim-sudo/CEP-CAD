@@ -26,7 +26,11 @@ namespace PluginConceito.Modules.PlotFolhas
 
             try
             {
-                return transaction.GetObject(entityId, OpenMode.ForRead, false) as Entity;
+                return transaction.GetObject(
+                    entityId,
+                    OpenMode.ForRead,
+                    false,
+                    true) as Entity;
             }
             catch
             {

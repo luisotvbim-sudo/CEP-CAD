@@ -8,17 +8,24 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         private readonly SeloBlockCatalog _blockCatalog;
         private readonly SeloAttributeWriter _attributeWriter;
+        private readonly SeloAttributeReader _attributeReader;
 
         public SeloBlockService(IZwcadContext zwcad)
         {
             if (zwcad == null) throw new ArgumentNullException(nameof(zwcad));
 
             var attributeCatalog = new BlockAttributeCatalog();
-            _blockCatalog = new SeloBlockCatalog(zwcad, attributeCatalog);
-            _attributeWriter = new SeloAttributeWriter(
-                zwcad,
+            var paperSpace = new ActiveLayoutPaperSpace(zwcad);
+            var attributeResolver = new StampAttributeResolver(
                 attributeCatalog,
                 new StampBlockLocator());
+            _blockCatalog = new SeloBlockCatalog(zwcad, attributeCatalog);
+            _attributeWriter = new SeloAttributeWriter(
+                paperSpace,
+                attributeResolver);
+            _attributeReader = new SeloAttributeReader(
+                paperSpace,
+                attributeResolver);
         }
 
         public IReadOnlyList<string> GetBlockNames()
@@ -37,6 +44,17 @@ namespace PluginConceito.Modules.PlotFolhas
             string attributeTag)
         {
             return _attributeWriter.Fill(
+                sheets,
+                stampBlockName,
+                attributeTag);
+        }
+
+        public int CopyAttributeValuesToSheetNames(
+            IReadOnlyList<FolhaInfo> sheets,
+            string stampBlockName,
+            string attributeTag)
+        {
+            return _attributeReader.CopyToSheetNames(
                 sheets,
                 stampBlockName,
                 attributeTag);

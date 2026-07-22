@@ -313,6 +313,13 @@ As folhas são ordenadas visualmente de cima para baixo e da esquerda para a dir
 
 O cabeçalho estruturado suporta até dez partes e detecta separadores existentes (`-`, `_` ou `.`). `PlotFolhasNamingService` aplica a estrutura, normaliza edições, valida todos os nomes e salva os valores nos blocos dentro de `DocumentLock` e `Transaction`.
 
+O painel **Copiar nome para selo** aceita qualquer definição de bloco nomeada que possua atributos; o bloco não precisa seguir o padrão `SELO-*`. Para cada folha, `StampBlockLocator` procura no Paper Space a referência com o nome efetivo escolhido e seleciona a que tem a maior área de interseção com os limites daquela folha. `StampAttributeResolver` centraliza essa associação e atende os dois sentidos:
+
+- ao salvar ou gerar, o nome da folha é gravado no atributo escolhido;
+- em **Usar atributo nos nomes**, o valor do atributo da referência correspondente é carregado como nome da folha.
+
+Os valores carregados do selo passam pela normalização `.pdf` e pelas mesmas validações de nome vazio, inválido ou duplicado. Folhas sem o bloco, sem o atributo ou com valor vazio mantêm o nome que já estava na grade.
+
 #### 3. Interface
 
 `PlotFolhasHandler` cria a janela modeless e controla seu ciclo de vida. Workflows especializados coordenam:
@@ -361,15 +368,18 @@ No modo de emissão automática, cria a próxima pasta livre no padrão `Emissã
 - preserva viewports associados e remove os demais elementos do Paper Space;
 - ajusta a vista base do layout;
 - salva o layout da folha como espaço atual, com enquadramento equivalente a `ZOOM EXTENTS` e margem para abertura centralizada;
-- converte os limites das viewports preservadas em regiões no DCS de cada vista;
+- projeta os limites das viewports preservadas do Paper Space para regiões em WCS no Model;
 - mantém a união das regiões quando a folha possui múltiplas viewports;
-- testa os oito cantos dos limites 3D de cada entidade no DCS e apaga do Model somente entidades seguramente externas a todas as regiões;
+- intersecta `LINE`, `ARC`, `CIRCLE`, `ELLIPSE`, `SPLINE`, `POLYLINE` e demais `Curve` com todas as bordas, divide com `Curve.GetSplitCurves` e mantém somente os trechos visíveis na união das viewports;
 - preserva inteira qualquer referência de bloco ou Xref cujos limites interceptem ao menos uma viewport, sem `EXPLODE`, `TRIM` ou alteração da definição;
-- usa o contorno de clip para viewports poligonais retas ou circulares e ignora viewports desligadas e de papel;
+- preserva inteiras entidades não recortáveis, como textos, hachuras, cotas, leaders, imagens e proxies, quando seus limites interceptam alguma viewport;
+- apaga entidades invisíveis, em layers globalmente desligadas/congeladas ou congeladas em todas as viewports nas quais sua geometria aparece;
+- trata o congelamento por viewport individualmente: a entidade ainda permanece se estiver visível em pelo menos outra viewport da mesma folha;
+- registra os estados das layers, destrava e descongela temporariamente a cópia para permitir cortes/exclusões e restaura `IsOff`, `IsFrozen` e `IsLocked` antes de salvar;
+- usa o contorno de clip para viewports poligonais ou circulares e ignora a viewport-base, viewports desligadas e viewports em perspectiva;
 - esvazia o Model quando a folha não possui nenhuma viewport de Model elegível;
-- preserva o Model integralmente quando existem viewports, mas as regiões calculadas não encontram nenhuma entidade;
-- cancela a exportação antes de apagar o Model quando há uma viewport em perspectiva, que não pode ser isolada com segurança;
-- preserva entidades sem `GeometricExtents`, pois elas não podem ser classificadas com segurança;
+- apaga entidades sem `GeometricExtents` utilizável, pois não podem ser classificadas como visíveis pela mesma regra da implementação validada;
+- mantém a curva inteira e registra uma falha de corte quando `Curve.GetSplitCurves` não suporta uma geometria específica;
 - impede que a saída substitua o arquivo fonte;
 - salva primeiro em um arquivo temporário e só substitui a saída existente depois que a geração termina com sucesso.
 

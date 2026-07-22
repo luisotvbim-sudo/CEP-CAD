@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class SeloAttributeWriter
+    internal sealed class SeloAttributeReader
     {
         private readonly ActiveLayoutPaperSpace _paperSpace;
         private readonly StampAttributeResolver _attributeResolver;
 
-        public SeloAttributeWriter(
+        public SeloAttributeReader(
             ActiveLayoutPaperSpace paperSpace,
             StampAttributeResolver attributeResolver)
         {
@@ -20,7 +19,7 @@ namespace PluginConceito.Modules.PlotFolhas
                 throw new ArgumentNullException(nameof(attributeResolver));
         }
 
-        public int Fill(
+        public int CopyToSheetNames(
             IReadOnlyList<FolhaInfo> sheets,
             string blockName,
             string attributeTag)
@@ -28,23 +27,7 @@ namespace PluginConceito.Modules.PlotFolhas
             if (!HasConfiguration(sheets, blockName, attributeTag)) return 0;
 
             Document document = _paperSpace.GetDocument();
-            int filled = FillAttributes(
-                document,
-                sheets,
-                blockName,
-                attributeTag);
-
-            if (filled > 0) SynchronizeAttributes(document, blockName);
-            return filled;
-        }
-
-        private int FillAttributes(
-            Document document,
-            IEnumerable<FolhaInfo> sheets,
-            string blockName,
-            string attributeTag)
-        {
-            int filled = 0;
+            int copied = 0;
 
             using (DocumentLock documentLock = document.LockDocument())
             using (Transaction transaction =
@@ -54,12 +37,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
                 foreach (FolhaInfo sheet in sheets)
                 {
-                    if (sheet == null ||
-                        sheet.BlockReferenceId.IsNull ||
-                        sheet.BlockReferenceId.IsErased)
-                    {
-                        continue;
-                    }
+                    if (!CanRead(sheet)) continue;
 
                     StampAttributeMatch match = _attributeResolver.Find(
                         paperSpace,
@@ -67,38 +45,24 @@ namespace PluginConceito.Modules.PlotFolhas
                         sheet,
                         blockName,
                         attributeTag);
-                    if (match == null) continue;
+                    string value = match?.Attribute.TextString;
+                    if (string.IsNullOrWhiteSpace(value)) continue;
 
-                    WriteFileName(match.Attribute, match.Block, sheet.NomeArquivo);
-                    filled++;
+                    sheet.NomeArquivo = value.Trim();
+                    copied++;
                 }
 
                 transaction.Commit();
             }
 
-            return filled;
+            return copied;
         }
 
-        private static void WriteFileName(
-            AttributeReference attribute,
-            BlockReference block,
-            string fileName)
+        private static bool CanRead(FolhaInfo sheet)
         {
-            if (!attribute.IsWriteEnabled) attribute.UpgradeOpen();
-            attribute.TextString = Path.GetFileNameWithoutExtension(
-                fileName ?? string.Empty);
-            block.RecordGraphicsModified(true);
-        }
-
-        private static void SynchronizeAttributes(
-            Document document,
-            string blockName)
-        {
-            document.SendStringToExecute(
-                "_.ATTSYNC\nN\n" + blockName + "\n",
-                true,
-                false,
-                false);
+            return sheet != null &&
+                !sheet.BlockReferenceId.IsNull &&
+                !sheet.BlockReferenceId.IsErased;
         }
 
         private static bool HasConfiguration(
