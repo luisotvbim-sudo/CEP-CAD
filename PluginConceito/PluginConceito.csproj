@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>debug-codex\</OutputPath>
+    <OutputPath>debug-opencode\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -88,6 +88,7 @@
     <Compile Include="03-Modules\InsertNotes\Bootstrap\InsertNotesModule.cs" />
     <Compile Include="03-Modules\InsertNotes\Services\BlocoPathService.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\DisciplineViewModel.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\NoteViewModel.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesHandler.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesViewModel.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesWindow.xaml.cs">
