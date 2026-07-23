@@ -26,9 +26,10 @@ Este README é o contrato técnico do repositório. Uma pessoa ou agente deve co
 | Comando | Botão | Responsabilidade |
 |---|---|---|
 | `CNT_PLUGIN_STATUS` | **Status do plugin** | Confirma que a DLL, os módulos e a Ribbon foram inicializados. |
+| `CNT_INSERT_NOTES` | **Inserir notas** | Abre a seleção hierárquica de disciplina, etapa, importância e notas opcionais. |
 | `CNT_PLOT_FOLHAS` | **Plotar folhas** | Localiza folhas no layout, valida formatos e nomes, salva a nomenclatura, gera PDFs e exporta DWGs individuais. |
 
-Os dois comandos podem ser chamados pela linha de comando do ZWCAD. Seus botões são criados automaticamente na aba **CNT** da Ribbon.
+Os três comandos podem ser chamados pela linha de comando do ZWCAD. Seus botões são criados automaticamente na aba **CNT** da Ribbon.
 
 ## Tecnologias e pré-requisitos
 
@@ -108,7 +109,7 @@ O ponto de composição é `Application/Bootstrap/StarterApplication.cs`.
 ```mermaid
 flowchart TD
     A["ZWCAD executa NETLOAD"] --> B["StarterApplication.Initialize"]
-    B --> C["Cria contexto, telemetria e serviços"]
+    B --> C["Cria contexto e telemetria"]
     C --> D["Descobre e inicializa ICntModule"]
     D --> E["Descobre métodos com CntRibbonCommand"]
     E --> F["Valida comandos e metadados"]
@@ -121,14 +122,13 @@ O fluxo real é:
 
 1. `ZwcadContext` encapsula o documento ativo e a escrita no console.
 2. `ZwcadTelemetry` registra eventos e erros no console do ZWCAD.
-3. `CntServiceProvider` recebe os serviços compartilhados.
-4. `ModuleContext` reúne `IZwcadContext`, `ITelemetry` e `IServiceProvider`.
-5. `ModuleDiscovery` encontra todas as classes concretas que implementam `ICntModule`, em ordem determinística pelo nome completo.
-6. Cada módulo é instanciado por construtor público sem parâmetros e recebe `IModuleContext` em `Initialize`.
-7. `RibbonDiscovery` encontra métodos marcados com `CntRibbonCommand`.
-8. `RibbonValidator` elimina definições inválidas e escreve os motivos no console.
-9. `RibbonHost` cria ou reutiliza abas e painéis, evitando botões duplicados.
-10. Se a Ribbon ainda não estiver disponível, o plugin aguarda o evento `Application.Idle` e tenta novamente. Ao finalizar, remove essa inscrição.
+3. `ModuleContext` reúne `IZwcadContext` e `ITelemetry`.
+4. `ModuleDiscovery` encontra todas as classes concretas que implementam `ICntModule`, em ordem determinística pelo nome completo.
+5. Cada módulo é instanciado por construtor público sem parâmetros e recebe `IModuleContext` em `Initialize`.
+6. `RibbonDiscovery` encontra métodos marcados com `CntRibbonCommand`.
+7. `RibbonValidator` elimina definições inválidas e escreve os motivos no console.
+8. `RibbonHost` cria ou reutiliza abas e painéis, evitando botões duplicados.
+9. Se a Ribbon ainda não estiver disponível, o plugin aguarda o evento `Application.Idle` e tenta novamente. Ao finalizar, remove essa inscrição.
 
 Uma falha na inicialização de um módulo é registrada pela telemetria e não impede que os demais módulos sejam tentados.
 
@@ -139,27 +139,19 @@ Há dois conceitos diferentes que não devem ser confundidos:
 1. **Carregamento no ZWCAD:** a DLL entra no processo pelo comando `NETLOAD`; o atributo `ExtensionApplication` informa a classe de inicialização.
 2. **Injeção de dependências do código:** objetos são construídos no ponto de composição e entregues por interfaces/construtores. Não existe injeção automática por atributos nem um contêiner externo.
 
-### Serviços globais
+### Contexto compartilhado
 
-`StarterApplication.Initialize()` cria uma única instância de cada serviço global e registra:
-
-```csharp
-services.Add<IZwcadContext>(_zwcad);
-services.Add<ITelemetry>(telemetry);
-```
-
-Essas mesmas instâncias também são expostas diretamente por `IModuleContext`:
+`StarterApplication.Initialize()` cria uma única instância do contexto do ZWCAD e da telemetria. Essas dependências são expostas diretamente por `IModuleContext`:
 
 ```csharp
 public interface IModuleContext
 {
     ITelemetry Telemetry { get; }
     IZwcadContext Zwcad { get; }
-    IServiceProvider Services { get; }
 }
 ```
 
-`CntServiceProvider` é deliberadamente pequeno: armazena uma instância por tipo e implementa somente `Add<TService>` e `GetService(Type)`. Ele não cria objetos, não controla escopos e não faz resolução recursiva de construtores.
+Não há contêiner de serviços: o contexto mantém explícitas somente as dependências realmente compartilhadas.
 
 ### Dependências de cada módulo
 
@@ -174,9 +166,9 @@ Módulo
     └── interface/contexto compartilhado
 ```
 
-Esse é o padrão de composição manual adotado pelo repositório. Dependências obrigatórias devem entrar pelo construtor e ser validadas com `ArgumentNullException`. Não use `new` espalhado por eventos, métodos de domínio ou comandos. Concentre a montagem no `Initialize` do módulo ou no construtor do handler criado por ele.
+Esse é o padrão de composição manual adotado pelo repositório. Dependências obrigatórias devem entrar pelo construtor e ser validadas com `ArgumentNullException`. Não use `new` espalhado por eventos, métodos de domínio ou comandos. Concentre a montagem no `Initialize` do módulo ou em uma classe `*CompositionRoot`.
 
-Só registre um novo serviço em `StarterApplication` quando ele for realmente compartilhado por vários módulos ou fizer parte da infraestrutura. Serviços específicos de um comando devem permanecer dentro do módulo.
+Só adicione uma dependência ao `IModuleContext` quando ela for realmente compartilhada por vários módulos ou fizer parte da infraestrutura. Serviços específicos de um comando devem permanecer dentro do módulo.
 
 ## Como um comando é executado
 
@@ -238,14 +230,16 @@ Se usar ícone, coloque-o em uma pasta `Resources` dentro de `03-Modules`, confi
 
 ```text
 PluginConceito/
-├── 01-Services/                 # infraestrutura compartilhada mínima
 ├── 02-Application/
 │   ├── Bootstrap/               # composition root e ciclo de vida do plugin
 │   ├── Contracts/               # interfaces e atributos estáveis
 │   ├── Modules/                 # descoberta e contexto dos módulos
+│   ├── Presentation/            # infraestrutura comum de binding
+│   ├── Reflection/              # leitura segura dos tipos do assembly
 │   ├── Ribbon/                  # descoberta, validação e criação da Ribbon
 │   └── Zwcad/                   # adaptadores para a API do ZWCAD
 ├── 03-Modules/
+│   ├── InsertNotes/             # seleção e busca de notas
 │   ├── PluginStatus/            # comando de diagnóstico
 │   └── PlotFolhas/              # caso de uso de plotagem/exportação
 ├── Properties/
@@ -282,6 +276,12 @@ Fluxo:
 5. Escreve o mesmo resultado no console e registra `CNT_PLUGIN_STATUS.Success`.
 
 É intencionalmente pequeno e serve como exemplo mínimo de comando completo.
+
+### `CNT_INSERT_NOTES`
+
+Objetivo atual: coletar os critérios usados para localizar notas de projeto. `InsertNotesCatalog` mantém a árvore de disciplinas e o catálogo de textos; `InsertNotesViewModel` cuida somente da seleção, busca e validação da interface.
+
+A disciplina, a etapa e a importância usam seleção exclusiva. A lista de notas é filtrada por termos sem perder o estado das caixas selecionadas. Nesta versão, o botão **Buscar notas** valida os campos e confirma a seleção; a inserção efetiva de blocos no desenho ainda não faz parte do fluxo implementado.
 
 ### `CNT_PLOT_FOLHAS`
 
@@ -456,7 +456,7 @@ namespace PluginConceito.Modules.MeuComando
 }
 ```
 
-Para um caso maior, `Initialize` ou o construtor do handler deve criar serviços especializados uma única vez e passá-los por construtor. O módulo não deve virar depósito de regras.
+Para um caso maior, use uma classe `*CompositionRoot` chamada pelo `Initialize`. Ela cria os serviços especializados uma única vez e os passa ao handler por construtor. O módulo e o handler não devem virar depósitos de regras ou de criação de objetos.
 
 ### 3. Handler do caso de uso
 
@@ -606,7 +606,7 @@ Antes de considerar um novo comando concluído, confirme todos os itens:
 - [ ] A classe `*Command` contém apenas metadados e delegação.
 - [ ] Existe uma classe concreta `ICntModule` com `Id` único e construtor público sem parâmetros.
 - [ ] O módulo compõe o handler e os serviços por construtor.
-- [ ] Regras específicas ficaram dentro do módulo; somente infraestrutura compartilhada foi para `02-Application` ou `01-Services`.
+- [ ] Regras específicas ficaram dentro do módulo; somente infraestrutura compartilhada foi para `02-Application`.
 - [ ] Não foi adicionada nenhuma referência específica do comando ao `StarterApplication`.
 
 ### Registro e Ribbon

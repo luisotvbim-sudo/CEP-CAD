@@ -9,9 +9,11 @@ Usuário (Ribbon/Console)
     ↓
 PlotFolhasCommand.cs        → [CommandMethod] + [CntRibbonCommand] — adaptador fino
     ↓
-PlotFolhasModule.cs         → ICntModule — composição do handler
+PlotFolhasModule.cs         → ICntModule
     ↓
-PlotFolhasHandler.cs        → orquestrador — cria sessão, abre janela, assina eventos
+PlotFolhasCompositionRoot.cs → composição explícita das dependências
+    ↓
+PlotFolhasHandler.cs        → orquestrador — abre sessão/janela e assina eventos
     ↓
 PlotFolhasWindow.xaml/.cs   → UI WPF modeless — DataGrid + controles
     ↓ (eventos)
@@ -26,13 +28,15 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 03-Modules/PlotFolhas/
 ├── Bootstrap/
 │   ├── PlotFolhasCommand.cs      # Atributos + delegação
-│   └── PlotFolhasModule.cs       # ICntModule, compõe handler
+│   ├── PlotFolhasModule.cs       # ICntModule
+│   └── PlotFolhasCompositionRoot.cs # Compõe serviços e handler
 ├── Discovery/
-│   └── FolhaScanner.cs           # Escaneia folhas no layout (CEP-*)
+│   ├── FolhaScanner.cs           # Escaneia folhas no layout (CEP-*)
+│   ├── FolhaBoundaryResolver.cs  # Resolve limites e transformações
+│   └── FolhaValidationService.cs # Valida formato, escala e sobreposição
 ├── Domain/
 │   ├── FolhaFormatCatalog.cs     # Catálogo de formatos CEP-A4...CEP-A0E
-│   ├── FolhaInfo.cs              # Modelo da folha (INotifyPropertyChanged)
-│   └── NamingHeader.cs           # Estrutura de nome com partes
+│   └── FolhaInfo.cs              # Modelo da folha (INotifyPropertyChanged)
 ├── Naming/
 │   ├── ArquivoNomeService.cs     # Sanitização e validação de nomes
 │   ├── FolhaNomenclaturaService.cs # Leitura/escrita do atributo CNT_NOME_ARQUIVO
@@ -53,7 +57,7 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 ├── Navigation/
 │   └── SheetZoomService.cs       # Zoom para uma folha específica
 └── UI/
-    ├── PlotFolhasHandler.cs      # Ciclo de vida da janela e composição
+    ├── PlotFolhasHandler.cs      # Ciclo de vida da janela
     ├── PlotFolhasViewModel.cs    # Estado geral da janela
     ├── PlotSheetCollectionViewModel.cs # Filtro e resumo das folhas
     ├── NamingStructureViewModel.cs # Estrutura de nomenclatura
@@ -65,6 +69,7 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
         ├── PlotFolhasSessionService.cs   # Cria sessão (scan + nomes + dispositivos)
         ├── PlotFolhasNamingService.cs    # Aplica estrutura, normaliza, valida
         ├── PlotFolhasGenerationService.cs # Prepara e executa geração de arquivos
+        ├── OutputFolderService.cs          # Prepara e abre pastas de saída
         ├── SeloBlockService.cs           # Fachada do recurso de selo
         ├── SeloBlockCatalog.cs           # Catálogo de blocos
         ├── BlockAttributeCatalog.cs      # Busca recursiva de atributos
@@ -267,9 +272,9 @@ PlotExecutionResult Execute(preparation, folder, device, ctb, overwrite, progres
 string TryOpenOutputFolder(folder)
 ```
 
-### 5.6 FolhaScanner
+### 5.6 Descoberta e validação de folhas
 
-Escaneia o layout ativo por blocos CEP-*.
+`FolhaScanner` escaneia o layout ativo por blocos CEP-*. O cálculo de limites fica em `FolhaBoundaryResolver`; as validações ficam em `FolhaValidationService`.
 
 **Regras**:
 - Só roda em Layout (não Model)
@@ -307,7 +312,7 @@ Escaneia o layout ativo por blocos CEP-*.
 
 ### 6.2 ViewModel
 
-- Os ViewModels herdam `ObservableViewModel`, que implementa `INotifyPropertyChanged`
+- Os ViewModels herdam `ObservableObject`, compartilhado em `02-Application/Presentation`
 - Cada ViewModel representa um grupo coeso de bindings
 - `ObservableCollection<T>` para listas bindáveis
 - `ICollectionView` para filtro da DataGrid

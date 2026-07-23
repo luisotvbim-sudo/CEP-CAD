@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class PlotFolhasViewModel : ObservableViewModel
+    internal sealed class PlotFolhasViewModel : ObservableObject
     {
         private string _statusMessage;
         private bool _isBusy;
@@ -46,19 +47,19 @@ namespace PluginConceito.Modules.PlotFolhas
         public string StatusMessage
         {
             get { return _statusMessage; }
-            set { SetField(ref _statusMessage, value ?? string.Empty, nameof(StatusMessage)); }
+            set { SetProperty(ref _statusMessage, value ?? string.Empty); }
         }
 
         public bool IsBusy
         {
             get { return _isBusy; }
-            set { SetField(ref _isBusy, value, nameof(IsBusy)); }
+            set { SetProperty(ref _isBusy, value); }
         }
 
         public FolhaInfo SelectedSheet
         {
             get { return _selectedSheet; }
-            set { SetField(ref _selectedSheet, value, nameof(SelectedSheet)); }
+            set { SetProperty(ref _selectedSheet, value); }
         }
 
         public void AddNamingPart()

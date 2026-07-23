@@ -51,10 +51,6 @@ Projetos separados só devem ser considerados quando houver necessidade real de 
 
 ~~~text
 PluginConceito/
-├── 01-Services/
-│   ├── Configuration/
-│   ├── Logging/
-│   └── serviços realmente compartilhados
 ├── 02-Application/
 │   ├── Bootstrap/
 │   │   └── StarterApplication.cs
@@ -66,35 +62,19 @@ PluginConceito/
 │   │   ├── RibbonDiscovery.cs
 │   │   ├── RibbonValidator.cs
 │   │   └── RibbonHost.cs
-│   ├── Telemetry/
+│   ├── Presentation/
+│   ├── Reflection/
 │   └── Zwcad/
 │       ├── ZwcadContext.cs
 │       └── ZwcadCommandDispatcher.cs
 ├── 03-Modules/
-│   ├── LayerInfo/
-│   │   ├── LayerInfoModule.cs
-│   │   ├── LayerInfoCommand.cs
-│   │   ├── LayerInfoService.cs
-│   │   ├── LayerInfoWindow.xaml
-│   │   └── Resources/layer-info.png
-│   └── Documentation/
-│       ├── DocumentationModule.cs
-│       ├── DocumentationCommand.cs
-│       ├── DocumentationService.cs
-│       ├── DocumentationPanel.xaml
-│       └── Resources/
+│   ├── InsertNotes/
+│   ├── PlotFolhas/
+│   └── PluginStatus/
 └── PluginConceito.csproj
 ~~~
 
-Os nomes atuais 01-Sevices e 02-Aplication podem ser normalizados futuramente para 01-Services e 02-Application. Essa correção não é necessária para validar o conceito.
-
 ## 5. Responsabilidades
-
-### Services
-
-Contém serviços usados por mais de um módulo, como configuração, logging, persistência comum e integrações compartilhadas.
-
-Um serviço usado por apenas uma funcionalidade permanece na pasta do módulo. Services não conhece Ribbon, comandos concretos ou janelas específicas.
 
 ### Application
 
@@ -129,8 +109,6 @@ public interface IModuleContext
     ITelemetry Telemetry { get; }
 
     IZwcadContext Zwcad { get; }
-
-    IServiceProvider Services { get; }
 }
 ~~~
 
@@ -296,9 +274,9 @@ Esse contrato complementa o atributo simples; não deve substituí-lo para todos
 
 ## 14. UI e telemetria
 
-A UI específica pertence ao módulo. Uma LayerInfoWindow, por exemplo, fica em 03-Modules/LayerInfo.
+A UI específica pertence ao módulo. `PlotFolhasWindow`, por exemplo, fica em `03-Modules/PlotFolhas/UI`.
 
-Application contém apenas hosts e adaptadores genéricos, como PaletteHost. Services não conhece controles WPF específicos.
+Application contém apenas infraestrutura compartilhada, contratos, hosts e adaptadores genéricos. Ela não conhece janelas WPF específicas.
 
 A telemetria permanece centralizada em Application. O host pode observar início, sucesso, cancelamento e falha dos comandos com prefixo CNT_. O módulo emite eventos adicionais apenas para informações específicas de negócio.
 
@@ -323,7 +301,7 @@ Uma falha em um módulo deve ser registrada e isolada sempre que possível.
 2. Pasta, módulo, comando e prefixo das classes usam o mesmo nome.
 3. Os metadados da Ribbon ficam no arquivo do comando.
 4. A UI e os serviços específicos ficam na pasta do módulo.
-5. Um serviço só vai para 01-Services quando for compartilhado.
+5. Um serviço específico permanece no módulo; infraestrutura realmente compartilhada vai para 02-Application.
 6. RibbonHost não é editado para cadastrar um botão comum.
 7. O nome global do comando começa com CNT_.
 8. IDs não dependem do texto apresentado.
@@ -369,7 +347,7 @@ Foi evitado para não criar abstrações sem benefício.
 
 ### Serviços globais para tudo
 
-Serviços específicos permanecem no módulo. Somente comportamentos compartilhados pertencem a Services.
+Serviços específicos permanecem no módulo. Somente infraestrutura realmente compartilhada pertence a Application.
 
 ## 19. Critérios de sucesso
 

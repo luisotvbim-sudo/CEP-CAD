@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using PluginConceito.Application.Contracts;
+using PluginConceito.Application.Reflection;
 
 namespace PluginConceito.Application.Modules
 {
@@ -15,7 +16,7 @@ namespace PluginConceito.Application.Modules
                 throw new ArgumentNullException(nameof(assembly));
             }
 
-            return GetLoadableTypes(assembly)
+            return AssemblyTypeLoader.GetLoadableTypes(assembly)
                 .Where(type =>
                     typeof(ICntModule).IsAssignableFrom(type) &&
                     !type.IsAbstract &&
@@ -24,16 +25,5 @@ namespace PluginConceito.Application.Modules
                 .ToList();
         }
 
-        private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-        {
-            try
-            {
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException exception)
-            {
-                return exception.Types.Where(type => type != null);
-            }
-        }
     }
 }

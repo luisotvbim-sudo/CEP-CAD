@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using PluginConceito.Application.Contracts;
+using PluginConceito.Application.Reflection;
 using ZwSoft.ZwCAD.Runtime;
 
 namespace PluginConceito.Application.Ribbon
@@ -18,7 +19,9 @@ namespace PluginConceito.Application.Ribbon
 
             var definitions = new List<RibbonItemDefinition>();
 
-            foreach (Type type in GetLoadableTypes(assembly).OrderBy(item => item.FullName, StringComparer.Ordinal))
+            foreach (Type type in AssemblyTypeLoader
+                .GetLoadableTypes(assembly)
+                .OrderBy(item => item.FullName, StringComparer.Ordinal))
             {
                 MethodInfo[] methods = type.GetMethods(
                     BindingFlags.Public |
@@ -40,18 +43,6 @@ namespace PluginConceito.Application.Ribbon
             }
 
             return definitions;
-        }
-
-        private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-        {
-            try
-            {
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException exception)
-            {
-                return exception.Types.Where(type => type != null);
-            }
         }
     }
 }

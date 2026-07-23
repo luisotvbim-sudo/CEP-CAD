@@ -14,7 +14,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void Initialize(IModuleContext context)
         {
-            Handler = new PlotFolhasHandler(context);
+            Handler = PlotFolhasCompositionRoot.Create(context);
         }
 
         internal static void Execute()

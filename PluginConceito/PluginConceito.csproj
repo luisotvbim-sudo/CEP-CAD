@@ -63,7 +63,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="01-Services\CntServiceProvider.cs" />
     <Compile Include="02-Application\Bootstrap\StarterApplication.cs" />
     <Compile Include="02-Application\Contracts\CntRibbonCommandAttribute.cs" />
     <Compile Include="02-Application\Contracts\ICntModule.cs" />
@@ -72,6 +71,8 @@
     <Compile Include="02-Application\Contracts\IZwcadContext.cs" />
     <Compile Include="02-Application\Modules\ModuleContext.cs" />
     <Compile Include="02-Application\Modules\ModuleDiscovery.cs" />
+    <Compile Include="02-Application\Presentation\ObservableObject.cs" />
+    <Compile Include="02-Application\Reflection\AssemblyTypeLoader.cs" />
     <Compile Include="02-Application\Ribbon\RibbonDiscovery.cs" />
     <Compile Include="02-Application\Ribbon\RibbonHost.cs" />
     <Compile Include="02-Application\Ribbon\RibbonIconLoader.cs" />
@@ -86,9 +87,11 @@
     <Compile Include="03-Modules\PluginStatus\PluginStatusModule.cs" />
     <Compile Include="03-Modules\InsertNotes\Bootstrap\InsertNotesCommand.cs" />
     <Compile Include="03-Modules\InsertNotes\Bootstrap\InsertNotesModule.cs" />
-    <Compile Include="03-Modules\InsertNotes\Services\BlocoPathService.cs" />
+    <Compile Include="03-Modules\InsertNotes\Domain\DisciplineDefinition.cs" />
+    <Compile Include="03-Modules\InsertNotes\Services\InsertNotesCatalog.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\DisciplineViewModel.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\NoteViewModel.cs" />
+    <Compile Include="03-Modules\InsertNotes\UI\SelectableItemViewModel.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesHandler.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesViewModel.cs" />
     <Compile Include="03-Modules\InsertNotes\UI\InsertNotesWindow.xaml.cs">
@@ -125,7 +128,6 @@
     <Compile Include="03-Modules\PlotFolhas\Domain\BlockNameHelper.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\FolhaFormatCatalog.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\FolhaInfo.cs" />
-    <Compile Include="03-Modules\PlotFolhas\Domain\NamingHeader.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\PlotFolhasGenerationPreparation.cs" />
     <Compile Include="03-Modules\PlotFolhas\Domain\PlotFolhasSession.cs" />
     <Compile Include="03-Modules\PlotFolhas\Naming\FolhaNomenclaturaService.cs" />
@@ -133,11 +135,13 @@
     <Compile Include="03-Modules\PlotFolhas\Naming\NamingStandardParser.cs" />
     <Compile Include="03-Modules\PlotFolhas\Naming\ParsedName.cs" />
     <Compile Include="03-Modules\PlotFolhas\Discovery\FolhaScanner.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Discovery\FolhaBoundaryResolver.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Discovery\FolhaValidationService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Bootstrap\PlotFolhasCommand.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Bootstrap\PlotFolhasCompositionRoot.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\PlotFolhasDocumentTracker.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\NamingPartViewModel.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\NamingStructureViewModel.cs" />
-    <Compile Include="03-Modules\PlotFolhas\UI\ObservableViewModel.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\PlotOutputOptionsViewModel.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\PlotSheetCollectionViewModel.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\StampSelectionViewModel.cs" />
@@ -156,6 +160,7 @@
     <Compile Include="03-Modules\PlotFolhas\UI\Services\StampAttributeResolver.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\PlotFolhasNamingService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Services\PlotFolhasGenerationService.cs" />
+    <Compile Include="03-Modules\PlotFolhas\UI\Services\OutputFolderService.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Workflows\PlotFolhasGenerationRunner.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Workflows\PlotFolhasGenerationWorkflow.cs" />
     <Compile Include="03-Modules\PlotFolhas\UI\Workflows\PlotFolhasNamingWorkflow.cs" />

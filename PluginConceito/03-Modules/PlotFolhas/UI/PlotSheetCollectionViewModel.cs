@@ -4,10 +4,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class PlotSheetCollectionViewModel : ObservableViewModel
+    internal sealed class PlotSheetCollectionViewModel : ObservableObject
     {
         private string _searchText;
         private bool _showOnlyIssues;
@@ -32,7 +33,7 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return _searchText; }
             set
             {
-                if (!SetField(ref _searchText, value, nameof(SearchText))) return;
+                if (!SetProperty(ref _searchText, value)) return;
                 RefreshFilter();
             }
         }
@@ -42,7 +43,7 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return _showOnlyIssues; }
             set
             {
-                if (!SetField(ref _showOnlyIssues, value, nameof(ShowOnlyIssues))) return;
+                if (!SetProperty(ref _showOnlyIssues, value)) return;
                 RefreshFilter();
             }
         }
@@ -108,15 +109,15 @@ namespace PluginConceito.Modules.PlotFolhas
         private void RefreshFilter()
         {
             View.Refresh();
-            RaisePropertyChanged(nameof(VisibleCount));
+            OnPropertyChanged(nameof(VisibleCount));
         }
 
         private void RefreshSummary()
         {
-            RaisePropertyChanged(nameof(PdfCount));
-            RaisePropertyChanged(nameof(DwgCount));
-            RaisePropertyChanged(nameof(IssueCount));
-            RaisePropertyChanged(nameof(VisibleCount));
+            OnPropertyChanged(nameof(PdfCount));
+            OnPropertyChanged(nameof(DwgCount));
+            OnPropertyChanged(nameof(IssueCount));
+            OnPropertyChanged(nameof(VisibleCount));
         }
 
         private static bool Contains(string value, string term)

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class StampSelectionViewModel : ObservableViewModel
+    internal sealed class StampSelectionViewModel : ObservableObject
     {
         private string _selectedBlock;
         private string _selectedAttribute;
@@ -24,13 +25,13 @@ namespace PluginConceito.Modules.PlotFolhas
         public string SelectedBlock
         {
             get { return _selectedBlock; }
-            set { SetField(ref _selectedBlock, value, nameof(SelectedBlock)); }
+            set { SetProperty(ref _selectedBlock, value); }
         }
 
         public string SelectedAttribute
         {
             get { return _selectedAttribute; }
-            set { SetField(ref _selectedAttribute, value, nameof(SelectedAttribute)); }
+            set { SetProperty(ref _selectedAttribute, value); }
         }
 
         public void SetAttributes(IEnumerable<string> attributes)
