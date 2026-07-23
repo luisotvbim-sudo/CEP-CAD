@@ -1,16 +1,13 @@
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace PluginConceito.Modules.InsertNotes
 {
-    internal sealed class DisciplineViewModel : INotifyPropertyChanged
+    internal sealed class NoteViewModel : INotifyPropertyChanged
     {
         private bool _isChecked;
 
         public string Name { get; }
-
-        public List<DisciplineViewModel> Children { get; } = new List<DisciplineViewModel>();
 
         public bool IsChecked
         {
@@ -27,7 +24,7 @@ namespace PluginConceito.Modules.InsertNotes
             }
         }
 
-        public DisciplineViewModel(string name)
+        public NoteViewModel(string name)
         {
             Name = name;
         }
