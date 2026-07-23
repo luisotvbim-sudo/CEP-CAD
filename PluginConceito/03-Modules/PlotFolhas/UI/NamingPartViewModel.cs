@@ -1,9 +1,9 @@
 using System;
-using System.ComponentModel;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class NamingPartViewModel : INotifyPropertyChanged
+    internal sealed class NamingPartViewModel : ObservableObject
     {
         private string _value;
         private bool _isSequential;
@@ -13,8 +13,6 @@ namespace PluginConceito.Modules.PlotFolhas
             _value = value ?? string.Empty;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public string Value
         {
             get { return _value; }
@@ -22,9 +20,7 @@ namespace PluginConceito.Modules.PlotFolhas
             {
                 string normalized = value ?? string.Empty;
                 if (normalized.Length > 6) normalized = normalized.Substring(0, 6);
-                if (string.Equals(_value, normalized, StringComparison.Ordinal)) return;
-                _value = normalized;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+                SetProperty(ref _value, normalized);
             }
         }
 
@@ -33,9 +29,7 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return _isSequential; }
             set
             {
-                if (_isSequential == value) return;
-                _isSequential = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSequential)));
+                SetProperty(ref _isSequential, value);
             }
         }
     }

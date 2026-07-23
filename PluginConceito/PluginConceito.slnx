@@ -1,5 +1,9 @@
 <Solution>
   <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Debug2024" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release2024" />
     <Platform Name="x64" />
   </Configurations>
   <Project Path="PluginConceito.csproj" Id="9780300d-84f0-4f84-a4d0-6823b6319eb2">

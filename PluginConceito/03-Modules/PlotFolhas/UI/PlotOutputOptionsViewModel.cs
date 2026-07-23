@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class PlotOutputOptionsViewModel : ObservableViewModel
+    internal sealed class PlotOutputOptionsViewModel : ObservableObject
     {
         private string _outputFolder;
         private readonly string _automaticEmissionBaseFolder;
@@ -41,9 +42,9 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return _outputFolder; }
             set
             {
-                if (!SetField(ref _outputFolder, value, nameof(OutputFolder))) return;
+                if (!SetProperty(ref _outputFolder, value)) return;
                 _outputFolderChosenByUser = true;
-                RaisePropertyChanged(nameof(UseAutomaticEmissionFolder));
+                OnPropertyChanged(nameof(UseAutomaticEmissionFolder));
             }
         }
 
@@ -56,37 +57,35 @@ namespace PluginConceito.Modules.PlotFolhas
         public string DeviceName
         {
             get { return _deviceName; }
-            set { SetField(ref _deviceName, value, nameof(DeviceName)); }
+            set { SetProperty(ref _deviceName, value); }
         }
 
         public string CtbName
         {
             get { return _ctbName; }
-            set { SetField(ref _ctbName, value, nameof(CtbName)); }
+            set { SetProperty(ref _ctbName, value); }
         }
 
         public bool OverwriteExisting
         {
             get { return _overwriteExisting; }
-            set { SetField(ref _overwriteExisting, value, nameof(OverwriteExisting)); }
+            set { SetProperty(ref _overwriteExisting, value); }
         }
 
         public void ChooseOutputFolder(string outputFolder)
         {
             _outputFolderChosenByUser = true;
-            SetField(
+            SetProperty(
                 ref _outputFolder,
-                outputFolder ?? string.Empty,
-                nameof(OutputFolder));
-            RaisePropertyChanged(nameof(UseAutomaticEmissionFolder));
+                outputFolder ?? string.Empty);
+            OnPropertyChanged(nameof(UseAutomaticEmissionFolder));
         }
 
         public void SetResolvedOutputFolder(string outputFolder)
         {
-            SetField(
+            SetProperty(
                 ref _outputFolder,
-                outputFolder ?? string.Empty,
-                nameof(OutputFolder));
+                outputFolder ?? string.Empty);
         }
 
         private static ObservableCollection<string> CreateOptions(

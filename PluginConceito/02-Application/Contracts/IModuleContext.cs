@@ -1,5 +1,3 @@
-using System;
-
 namespace PluginConceito.Application.Contracts
 {
     public interface IModuleContext
@@ -7,7 +5,5 @@ namespace PluginConceito.Application.Contracts
         ITelemetry Telemetry { get; }
 
         IZwcadContext Zwcad { get; }
-
-        IServiceProvider Services { get; }
     }
 }

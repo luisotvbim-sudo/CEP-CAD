@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace PluginConceito.Modules.PlotFolhas
@@ -38,27 +37,6 @@ namespace PluginConceito.Modules.PlotFolhas
                 allSheets.Where(sheet => sheet.Plotar).ToList(),
                 allSheets.Where(sheet => sheet.GerarDwg).ToList(),
                 allSheets.Where(sheet => sheet.Plotar || sheet.GerarDwg).ToList());
-        }
-
-        public IReadOnlyList<string> FindExistingFiles(string outputFolder)
-        {
-            return SelectedSheets
-                .SelectMany(sheet => GetOutputFiles(sheet, outputFolder))
-                .Where(File.Exists)
-                .ToList();
-        }
-
-        private static IEnumerable<string> GetOutputFiles(FolhaInfo sheet, string outputFolder)
-        {
-            if (sheet.Plotar)
-            {
-                yield return Path.Combine(outputFolder, sheet.NomeArquivo);
-            }
-
-            if (sheet.GerarDwg)
-            {
-                yield return Path.Combine(outputFolder, Path.ChangeExtension(sheet.NomeArquivo, ".dwg"));
-            }
         }
     }
 }

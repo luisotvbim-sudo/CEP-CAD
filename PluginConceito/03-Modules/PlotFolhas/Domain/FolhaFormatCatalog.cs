@@ -7,7 +7,7 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         // Nomes de bloco aceitos: somente o padrao exato CEP-*.
         // As dimensoes sao armazenadas como lado menor x lado maior.
-        private static readonly IDictionary<string, FolhaFormat> Formats =
+        private static readonly IReadOnlyDictionary<string, FolhaFormat> Formats =
             new Dictionary<string, FolhaFormat>(StringComparer.OrdinalIgnoreCase)
             {
                 { "CEP-A4", new FolhaFormat("A4", 210.0, 297.0) },

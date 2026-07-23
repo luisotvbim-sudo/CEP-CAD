@@ -14,19 +14,22 @@ namespace PluginConceito.Modules.PlotFolhas
         private readonly ArquivoNomeService _nameService;
         private readonly FolhaNomenclaturaService _nomenclatureService;
         private readonly PlotService _plotService;
+        private readonly NamingStandardParser _namingParser;
 
         public PlotFolhasSessionService(
             IZwcadContext zwcad,
             FolhaScanner scanner,
             ArquivoNomeService nameService,
             FolhaNomenclaturaService nomenclatureService,
-            PlotService plotService)
+            PlotService plotService,
+            NamingStandardParser namingParser)
         {
             _zwcad = zwcad ?? throw new ArgumentNullException(nameof(zwcad));
             _scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
             _nameService = nameService ?? throw new ArgumentNullException(nameof(nameService));
             _nomenclatureService = nomenclatureService ?? throw new ArgumentNullException(nameof(nomenclatureService));
             _plotService = plotService ?? throw new ArgumentNullException(nameof(plotService));
+            _namingParser = namingParser ?? throw new ArgumentNullException(nameof(namingParser));
         }
 
         public PlotFolhasSession Create()
@@ -50,7 +53,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
             IReadOnlyList<string> devices = _plotService.GetPlotDevices();
             IReadOnlyList<string> styles = _plotService.GetPlotStyleSheets();
-            ParsedName parsedName = new NamingStandardParser().Parse(sheets.First().NomeArquivo);
+            ParsedName parsedName = _namingParser.Parse(sheets.First().NomeArquivo);
             bool useAutomaticEmissionFolder;
             string outputFolder = GetDefaultOutputFolder(document, out useAutomaticEmissionFolder);
             return new PlotFolhasSession(

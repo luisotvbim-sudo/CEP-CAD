@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using PluginConceito.Application.Presentation;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class NamingStructureViewModel : ObservableViewModel
+    internal sealed class NamingStructureViewModel : ObservableObject
     {
         private const int MinimumParts = 4;
+        private const int MaximumParts = 10;
         private string _separator = "-";
 
         public NamingStructureViewModel(
@@ -28,7 +30,7 @@ namespace PluginConceito.Modules.PlotFolhas
                 string normalized = string.IsNullOrEmpty(value)
                     ? string.Empty
                     : value.Substring(0, 1);
-                SetField(ref _separator, normalized, nameof(Separator));
+                SetProperty(ref _separator, normalized);
             }
         }
 
@@ -44,10 +46,10 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public string TryAddPart()
         {
-            if (Parts.Count >= NamingHeader.MaximumParts)
+            if (Parts.Count >= MaximumParts)
             {
                 return "A estrutura aceita no máximo " +
-                    NamingHeader.MaximumParts + " campos.";
+                    MaximumParts + " campos.";
             }
 
             Parts.Add(new NamingPartViewModel(string.Empty));
@@ -71,7 +73,7 @@ namespace PluginConceito.Modules.PlotFolhas
             Separator = string.IsNullOrEmpty(separator) ? "-" : separator;
 
             int count = Math.Max(MinimumParts, values.Count);
-            count = Math.Min(NamingHeader.MaximumParts, count);
+            count = Math.Min(MaximumParts, count);
             for (int index = 0; index < count; index++)
             {
                 string value = index < values.Count ? values[index] : string.Empty;

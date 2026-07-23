@@ -21,46 +21,25 @@ namespace PluginConceito.Modules.PlotFolhas
 
         private PlotFolhasWindow _window;
 
-        public PlotFolhasHandler(IModuleContext context)
+        public PlotFolhasHandler(
+            IModuleContext context,
+            PlotFolhasSessionService sessionService,
+            PlotFolhasNamingWorkflow namingWorkflow,
+            PlotFolhasGenerationWorkflow generationWorkflow,
+            PlotFolhasZoomWorkflow zoomWorkflow,
+            PlotFolhasDocumentTracker documentTracker)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-
-            var formats = new FolhaFormatCatalog();
-            var fileNames = new ArquivoNomeService();
-            var nomenclature = new FolhaNomenclaturaService();
-            var plotService = new PlotService(context.Zwcad);
-            var namingService = new PlotFolhasNamingService(
-                context.Zwcad,
-                fileNames,
-                nomenclature);
-            var seloService = new SeloBlockService(context.Zwcad);
-            var generationService = CreateGenerationService(
-                context,
-                formats,
-                nomenclature,
-                plotService);
-
-            _sessionService = new PlotFolhasSessionService(
-                context.Zwcad,
-                new FolhaScanner(context.Zwcad, formats),
-                fileNames,
-                nomenclature,
-                plotService);
-            _namingWorkflow = new PlotFolhasNamingWorkflow(
-                namingService,
-                seloService,
-                context.Telemetry);
-            _zoomWorkflow = new PlotFolhasZoomWorkflow(
-                new SheetZoomService(context.Zwcad),
-                context.Telemetry);
-            _generationWorkflow = new PlotFolhasGenerationWorkflow(
-                generationService,
-                namingService,
-                new PlotFolhasGenerationRunner(
-                    generationService,
-                    seloService,
-                    context.Telemetry));
-            _documentTracker = new PlotFolhasDocumentTracker();
+            _sessionService = sessionService ??
+                throw new ArgumentNullException(nameof(sessionService));
+            _namingWorkflow = namingWorkflow ??
+                throw new ArgumentNullException(nameof(namingWorkflow));
+            _generationWorkflow = generationWorkflow ??
+                throw new ArgumentNullException(nameof(generationWorkflow));
+            _zoomWorkflow = zoomWorkflow ??
+                throw new ArgumentNullException(nameof(zoomWorkflow));
+            _documentTracker = documentTracker ??
+                throw new ArgumentNullException(nameof(documentTracker));
         }
 
         public void Execute()
@@ -69,20 +48,6 @@ namespace PluginConceito.Modules.PlotFolhas
                 "CNT_PLOT_FOLHAS.Execute",
                 "Falha ao mapear folhas: ",
                 true);
-        }
-
-        private static PlotFolhasGenerationService CreateGenerationService(
-            IModuleContext context,
-            FolhaFormatCatalog formats,
-            FolhaNomenclaturaService nomenclature,
-            PlotService plotService)
-        {
-            var execution = new PlotExecutionService(
-                context.Zwcad,
-                nomenclature,
-                plotService,
-                new DwgExportService(context.Zwcad, formats));
-            return new PlotFolhasGenerationService(execution);
         }
 
         private void TryShowSession(

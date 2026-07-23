@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 
 namespace PluginConceito.Modules.PlotFolhas
@@ -10,10 +7,15 @@ namespace PluginConceito.Modules.PlotFolhas
     internal sealed class PlotFolhasGenerationService
     {
         private readonly PlotExecutionService _executionService;
+        private readonly OutputFolderService _outputFolders;
 
-        public PlotFolhasGenerationService(PlotExecutionService executionService)
+        public PlotFolhasGenerationService(
+            PlotExecutionService executionService,
+            OutputFolderService outputFolders)
         {
             _executionService = executionService ?? throw new ArgumentNullException(nameof(executionService));
+            _outputFolders = outputFolders ??
+                throw new ArgumentNullException(nameof(outputFolders));
         }
 
         public PlotFolhasGenerationPreparation Prepare(
@@ -41,19 +43,22 @@ namespace PluginConceito.Modules.PlotFolhas
                 return PlotFolhasGenerationPreparation.Fail("Escolha uma impressora/plotter PDF.");
             }
 
-            string resolvedOutputFolder = useAutomaticEmissionFolder
+            string requestedFolder = useAutomaticEmissionFolder
                 ? automaticEmissionBaseFolder
                 : outputFolder;
-            if (string.IsNullOrWhiteSpace(resolvedOutputFolder))
+            if (string.IsNullOrWhiteSpace(requestedFolder))
             {
-                return PlotFolhasGenerationPreparation.Fail("Escolha uma pasta de saída.");
+                return PlotFolhasGenerationPreparation.Fail(
+                    "Escolha uma pasta de saída.");
             }
 
+            string resolvedOutputFolder;
             try
             {
-                resolvedOutputFolder = useAutomaticEmissionFolder
-                    ? CreateNextEmissionFolder(resolvedOutputFolder)
-                    : Directory.CreateDirectory(resolvedOutputFolder).FullName;
+                resolvedOutputFolder = _outputFolders.Prepare(
+                    outputFolder,
+                    useAutomaticEmissionFolder,
+                    automaticEmissionBaseFolder);
             }
             catch (Exception exception)
             {
@@ -64,7 +69,9 @@ namespace PluginConceito.Modules.PlotFolhas
             return PlotFolhasGenerationPreparation.Success(
                 plan,
                 resolvedOutputFolder,
-                plan.FindExistingFiles(resolvedOutputFolder));
+                _outputFolders.FindExistingFiles(
+                    plan,
+                    resolvedOutputFolder));
         }
 
         public PlotExecutionResult Execute(
@@ -91,43 +98,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public string TryOpenOutputFolder(string outputFolder)
         {
-            if (string.IsNullOrWhiteSpace(outputFolder) || !Directory.Exists(outputFolder)) return null;
-
-            try
-            {
-                Process process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "explorer.exe",
-                    Arguments = "/e,\"" + outputFolder + "\"",
-                    WorkingDirectory = outputFolder,
-                    UseShellExecute = true
-                });
-                if (process == null)
-                {
-                    return "Arquivos gerados, mas o Windows Explorer não foi iniciado.";
-                }
-                return null;
-            }
-            catch (Exception exception)
-            {
-                return "Arquivos gerados, mas não foi possível abrir a pasta: " + exception.Message;
-            }
-        }
-
-        private static string CreateNextEmissionFolder(string baseFolder)
-        {
-            Directory.CreateDirectory(baseFolder);
-            for (int number = 1; number < int.MaxValue; number++)
-            {
-                string folderName = "Emissão " + number.ToString("00", CultureInfo.InvariantCulture);
-                string candidate = Path.Combine(baseFolder, folderName);
-                if (Directory.Exists(candidate) || File.Exists(candidate)) continue;
-
-                Directory.CreateDirectory(candidate);
-                return candidate;
-            }
-
-            throw new IOException("Não foi possível determinar o próximo número de emissão.");
+            return _outputFolders.TryOpen(outputFolder);
         }
     }
 }

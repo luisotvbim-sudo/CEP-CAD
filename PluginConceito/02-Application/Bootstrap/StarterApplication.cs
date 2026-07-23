@@ -5,7 +5,6 @@ using PluginConceito.Application.Contracts;
 using PluginConceito.Application.Modules;
 using PluginConceito.Application.Ribbon;
 using PluginConceito.Application.Zwcad;
-using PluginConceito.Services;
 using ZwSoft.ZwCAD.Runtime;
 using ZwcadApplication = ZwSoft.ZwCAD.ApplicationServices.Application;
 
@@ -28,11 +27,7 @@ namespace PluginConceito.Application.Bootstrap
             {
                 Assembly assembly = typeof(StarterApplication).Assembly;
                 var telemetry = new ZwcadTelemetry(_zwcad);
-                var services = new CntServiceProvider();
-                services.Add<IZwcadContext>(_zwcad);
-                services.Add<ITelemetry>(telemetry);
-
-                var moduleContext = new ModuleContext(telemetry, _zwcad, services);
+                var moduleContext = new ModuleContext(telemetry, _zwcad);
                 InitializeModules(assembly, moduleContext, telemetry);
 
                 var discovery = new RibbonDiscovery();
