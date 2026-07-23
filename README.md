@@ -8,6 +8,7 @@ Este README é o contrato técnico do repositório. Uma pessoa ou agente deve co
 
 - [O que existe hoje](#o-que-existe-hoje)
 - [Tecnologias e pré-requisitos](#tecnologias-e-pré-requisitos)
+- [Compatibilidade e versionamento do ZWCAD](#compatibilidade-e-versionamento-do-zwcad)
 - [Compilar e carregar no ZWCAD](#compilar-e-carregar-no-zwcad)
 - [Como a aplicação inicia](#como-a-aplicação-inicia)
 - [Como funciona a injeção de dependências](#como-funciona-a-injeção-de-dependências)
@@ -34,52 +35,82 @@ Os três comandos podem ser chamados pela linha de comando do ZWCAD. Seus botõe
 ## Tecnologias e pré-requisitos
 
 - Windows x64.
-- ZWCAD 2024 ou 2025 com a API .NET instalada.
+- ZWCAD 2024 com a API .NET instalada, obrigatório para desenvolvimento e validação principal.
+- ZWCAD 2025 somente quando for necessário validar ou gerar o pacote específico dessa versão.
 - .NET Framework 4.8.
 - Visual Studio com as ferramentas de desenvolvimento para .NET Framework e WPF.
 - As DLLs `ZwDatabaseMgd.dll`, `ZwManaged.dll` e `ZdWindows.dll` da versão de destino do ZWCAD.
 
-O projeto usa o formato clássico de `.csproj`, C# 7.3 e WPF. O caminho padrão das referências é:
+O projeto usa o formato clássico de `.csproj`, C# 7.3 e WPF. A instalação-base usada pelos perfis oficiais de desenvolvimento é:
 
 ```text
-%ProgramW6432%\ZWSOFT\ZWCAD 2025
+%ProgramW6432%\ZWSOFT\ZWCAD 2024
 ```
 
-É possível informar outra instalação por meio da propriedade MSBuild `ZwcadInstallDir`.
+É possível informar uma pasta de instalação não padrão por meio da propriedade MSBuild `ZwcadInstallDir`, mas ela deve continuar apontando para o ZWCAD 2024 durante o desenvolvimento normal.
 
 > `dotnet build` não é o comando de referência deste projeto. Para projetos clássicos WPF/.NET Framework, use o MSBuild instalado pelo Visual Studio; caso contrário, o código gerado pelo XAML pode não ser produzido e surgirão erros como `InitializeComponent não existe`.
+
+## Compatibilidade e versionamento do ZWCAD
+
+**O ZWCAD 2024 é a versão-base obrigatória do projeto. Todo código novo deve ser projetado, compilado e validado primeiro contra as DLLs do ZWCAD 2024.**
+
+O suporte a versões mais novas não muda essa base. As APIs `ZwManaged`, `ZwDatabaseMgd` e `ZdWindows` possuem versões de assembly diferentes entre o ZWCAD 2024 e o 2025; por isso, cada versão suportada deve receber um binário próprio, mesmo quando o código-fonte for o mesmo.
+
+Regras obrigatórias:
+
+1. Use apenas APIs disponíveis no ZWCAD 2024 no código compartilhado.
+2. Não introduza uma dependência exclusiva do ZWCAD 2025 em uma classe comum.
+3. Quando uma versão mais nova exigir comportamento diferente, isole a integração em um adaptador pequeno. Use compilação condicional (`ZWCAD2024`, `ZWCAD2025`) somente quando a diferença de API não puder ser encapsulada de forma mais simples.
+4. Mantenha um único código-fonte e o branch `main`; não crie branches permanentes por versão do ZWCAD.
+5. Versione o plugin uma única vez, preferencialmente com SemVer, e gere um pacote por versão do host:
+
+```text
+PluginConceito-1.3.0-ZWCAD2024.zip
+PluginConceito-1.3.0-ZWCAD2025.zip
+```
+
+6. Uma funcionalidade não está pronta enquanto não compilar e funcionar no ZWCAD 2024. A validação no 2025 é adicional e não substitui a validação da versão-base.
+
+A decisão completa e suas consequências estão registradas em `CONTEXTO-COMPATIBILIDADE-ZWCAD.md`.
 
 ## Compilar e carregar no ZWCAD
 
 ### Compilação no Visual Studio
 
 1. Abra `PluginConceito/PluginConceito.slnx`.
-2. Selecione `Debug` ou `Release` e a plataforma `x64`.
-3. Confirme que `ZwcadInstallDir` aponta para a versão correta do ZWCAD.
+2. Para desenvolver, selecione `Debug2024` e a plataforma `x64`.
+3. Para gerar o binário otimizado, selecione `Release2024` e a plataforma `x64`.
 4. Compile a solução.
 
-Saídas esperadas:
+Perfis oficiais:
+
+| Perfil | Finalidade | Referências | Saída |
+|---|---|---|---|
+| `Debug2024` | Desenvolvimento e depuração | DLLs do ZWCAD 2024 | `PluginConceito/bin/ZWCAD2024/Debug/` |
+| `Release2024` | Pacote otimizado | DLLs do ZWCAD 2024 | `PluginConceito/bin/ZWCAD2024/Release/` |
+
+Ao iniciar `Debug2024` com F5, o Visual Studio abre:
 
 ```text
-PluginConceito/bin/Debug/PluginConceito.dll
-PluginConceito/bin/Release/PluginConceito.dll
+%ProgramW6432%\ZWSOFT\ZWCAD 2024\ZWCAD.exe
 ```
 
 Exemplo pela linha de comando, ajustando o caminho do MSBuild conforme a instalação local:
 
 ```powershell
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" `
-  .\PluginConceito\PluginConceito.csproj `
-  /t:Rebuild /p:Configuration=Debug /p:Platform=x64
+  .\PluginConceito\PluginConceito.slnx `
+  /t:Rebuild /p:Configuration=Debug2024 /p:Platform=x64
 ```
 
-Para outra pasta do ZWCAD:
+Para uma instalação do ZWCAD 2024 em outra pasta:
 
 ```powershell
 & "CAMINHO_DO_MSBUILD\MSBuild.exe" `
   .\PluginConceito\PluginConceito.csproj `
-  /t:Rebuild /p:Configuration=Debug /p:Platform=x64 `
-  /p:ZwcadInstallDir="C:\Program Files\ZWSOFT\ZWCAD 2024"
+  /t:Rebuild /p:Configuration=Debug2024 /p:Platform=x64 `
+  /p:ZwcadInstallDir="D:\Aplicativos\ZWCAD 2024"
 ```
 
 ### Carregamento manual
@@ -96,7 +127,7 @@ Para outra pasta do ZWCAD:
 
 Os arquivos LISP na raiz automatizam o `NETLOAD`:
 
-- `CarregarPluginConceito.lsp`: desenvolvimento local no ZWCAD 2025;
+- `CarregarPluginConceito.lsp`: carregador legado do ambiente local no ZWCAD 2025; não é a referência de desenvolvimento;
 - `CarregarPluginConceito_2024.lsp`: carregamento direto de uma DLL de rede;
 - `CarregarPluginConceito_2024_RedeParaLocal.lsp`: copia DLL/PDB da rede para uma pasta local versionada e depois carrega a cópia, evitando bloquear a DLL central.
 
@@ -519,8 +550,8 @@ Edite `StarterApplication` apenas para adicionar infraestrutura realmente global
 
 ### 6. Compilar e testar no ZWCAD
 
-1. Recompile com MSBuild/Visual Studio.
-2. Reinicie o ZWCAD ou carregue uma DLL com caminho/nome diferente; assemblies já carregados podem permanecer bloqueados no processo.
+1. Recompile com o perfil `Debug2024` no MSBuild/Visual Studio.
+2. Abra o ZWCAD 2024. Reinicie o programa ou carregue uma DLL com caminho/nome diferente; assemblies já carregados podem permanecer bloqueados no processo.
 3. Observe o console `[CNT]` e confirme que não há erro `Ribbon:`.
 4. Digite `CNT_MEU_COMANDO` no console.
 5. Confirme o botão na aba/painel definidos.
@@ -543,6 +574,7 @@ O objetivo não é criar a maior abstração possível; é manter cada mudança 
 - Não duplique nomes de comando, IDs, validações ou regras de nomenclatura.
 - Não crie uma camada, interface ou serviço sem haver uma fronteira real de responsabilidade, substituição ou teste.
 - Preserve o estilo e a versão de C# já usados pelo projeto.
+- Projete e valide sempre contra a API do ZWCAD 2024; suporte a versões mais novas deve permanecer isolado.
 
 ### O que evitar
 
@@ -590,8 +622,8 @@ Erros iniciados por `Ribbon:` informam a classe/método e a regra violada. Um co
 
 ```powershell
 & "CAMINHO_DO_MSBUILD\MSBuild.exe" `
-  .\PluginConceito\PluginConceito.csproj `
-  /t:Rebuild /p:Configuration=Debug /p:Platform=x64
+  .\PluginConceito\PluginConceito.slnx `
+  /t:Rebuild /p:Configuration=Debug2024 /p:Platform=x64
 ```
 
 O repositório ainda não possui uma suíte automatizada. Para regras puras novas, prefira código sem dependência do ZWCAD para permitir a inclusão futura de testes unitários. Até que existam testes, a validação manual no ZWCAD faz parte obrigatória da definição de pronto.
@@ -627,10 +659,12 @@ Antes de considerar um novo comando concluído, confirme todos os itens:
 - [ ] Objetos descartáveis e eventos são liberados.
 - [ ] Erros têm mensagem útil e são registrados pela telemetria.
 - [ ] Não há regras duplicadas, métodos excessivamente longos ou dependências ocultas.
-- [ ] O código compila com MSBuild em `x64` sem erros.
+- [ ] O código não depende de APIs exclusivas de uma versão posterior ao ZWCAD 2024.
+- [ ] O código compila com MSBuild em `Debug2024 | x64` sem erros.
 
 ### Teste funcional
 
+- [ ] A validação principal foi executada no ZWCAD 2024.
 - [ ] O comando funciona digitado no console do ZWCAD.
 - [ ] O botão aparece uma única vez no local correto da Ribbon.
 - [ ] O botão fica indisponível quando não há documento ativo.
