@@ -201,7 +201,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="03-Modules\**\Resources\*.*" />
+    <EmbeddedResource Include="03-Modules\**\Resources\*.*"
+                      Exclude="03-Modules\PlotFolhas\Resources\Logo_Versao_Reduzida.png" />
+    <Resource Include="03-Modules\PlotFolhas\Resources\Logo_Versao_Reduzida.png" />
     <Page Include="03-Modules\InsertNotes\UI\InsertNotesWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
