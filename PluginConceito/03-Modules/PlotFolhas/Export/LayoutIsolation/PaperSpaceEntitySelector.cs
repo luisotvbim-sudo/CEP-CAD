@@ -18,7 +18,7 @@ namespace PluginConceito.Modules.PlotFolhas
             ObjectId selectedSheetId,
             PaperSpaceViewportSelection viewports,
             Transaction transaction,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             if (entityId == selectedSheetId || viewports.ContainsClipEntity(entityId)) return true;
             if (entity is Viewport) return viewports.ContainsViewport(entityId);

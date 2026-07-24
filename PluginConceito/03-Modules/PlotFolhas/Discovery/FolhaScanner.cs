@@ -32,10 +32,10 @@ namespace PluginConceito.Modules.PlotFolhas
                 throw new ArgumentNullException(nameof(validation));
         }
 
-        public IReadOnlyList<FolhaInfo> ScanActiveLayout()
+        public IReadOnlyList<FolhaInfo> ScanActiveSpace()
         {
             Document document = GetActiveDocument();
-            string layoutName = GetActivePaperLayoutName();
+            string layoutName = GetActiveLayoutName();
             List<FolhaInfo> found = ScanLayout(document, layoutName);
             List<FolhaInfo> ordered = OrderBySheetPosition(found);
 
@@ -56,19 +56,9 @@ namespace PluginConceito.Modules.PlotFolhas
             return document;
         }
 
-        private static string GetActivePaperLayoutName()
+        private static string GetActiveLayoutName()
         {
-            string layoutName = LayoutManager.Current.CurrentLayout;
-            if (string.Equals(
-                layoutName,
-                "Model",
-                StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException(
-                    "Ative uma aba de layout antes de executar o comando.");
-            }
-
-            return layoutName;
+            return LayoutManager.Current.CurrentLayout;
         }
 
         private List<FolhaInfo> ScanLayout(
@@ -85,11 +75,11 @@ namespace PluginConceito.Modules.PlotFolhas
                 var layout = (Layout)transaction.GetObject(
                     layoutId,
                     OpenMode.ForRead);
-                var paperSpace = (BlockTableRecord)transaction.GetObject(
+                var entitySpace = (BlockTableRecord)transaction.GetObject(
                     layout.BlockTableRecordId,
                     OpenMode.ForRead);
 
-                foreach (ObjectId entityId in paperSpace)
+                foreach (ObjectId entityId in entitySpace)
                 {
                     FolhaInfo sheet = TryCreateSheet(
                         entityId,
@@ -147,6 +137,12 @@ namespace PluginConceito.Modules.PlotFolhas
                 BlockReferenceId = entityId,
                 LayoutId = layout.ObjectId,
                 LayoutName = layout.LayoutName,
+                SpaceKind = layout.ModelType
+                    ? SheetSpaceKind.Model
+                    : SheetSpaceKind.Layout,
+                PlotScaleFactor = layout.ModelType
+                    ? ResolveModelPlotScale(block)
+                    : 1.0,
                 BlockName = blockName,
                 Formato = format.Name,
                 Limites = limits,
@@ -155,6 +151,19 @@ namespace PluginConceito.Modules.PlotFolhas
 
             _validation.ValidateSheet(block, sheet, format);
             return sheet;
+        }
+
+        private static double ResolveModelPlotScale(BlockReference block)
+        {
+            Scale3d scale = block.ScaleFactors;
+            double scaleX = Math.Abs(scale.X);
+            double scaleY = Math.Abs(scale.Y);
+            if (scaleX <= 0.0 || scaleY <= 0.0)
+            {
+                return 1.0;
+            }
+
+            return (scaleX + scaleY) / 2.0;
         }
 
         private void AssignSequenceAndReport(IList<FolhaInfo> sheets)

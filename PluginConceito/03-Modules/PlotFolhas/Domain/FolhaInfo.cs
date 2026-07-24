@@ -24,11 +24,20 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public string LayoutName { get; set; }
 
+        public SheetSpaceKind SpaceKind { get; set; }
+
+        public bool IsModelSpace
+        {
+            get { return SpaceKind == SheetSpaceKind.Model; }
+        }
+
         public string BlockName { get; set; }
 
         public string Formato { get; set; }
 
         public Extents2d Limites { get; set; }
+
+        public double PlotScaleFactor { get; set; } = 1.0;
 
         public double Largura
         {
@@ -38,6 +47,26 @@ namespace PluginConceito.Modules.PlotFolhas
         public double Altura
         {
             get { return Limites.MaxPoint.Y - Limites.MinPoint.Y; }
+        }
+
+        public double LarguraPapel
+        {
+            get
+            {
+                return Math.Abs(PlotScaleFactor) > 0.0
+                    ? Largura / Math.Abs(PlotScaleFactor)
+                    : Largura;
+            }
+        }
+
+        public double AlturaPapel
+        {
+            get
+            {
+                return Math.Abs(PlotScaleFactor) > 0.0
+                    ? Altura / Math.Abs(PlotScaleFactor)
+                    : Altura;
+            }
         }
 
         public bool LimitePadronizadoEncontrado { get; set; }

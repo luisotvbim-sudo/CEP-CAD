@@ -24,7 +24,9 @@ namespace PluginConceito.Modules.PlotFolhas
             string defaultPlotStyle,
             string namingSeparator,
             IReadOnlyList<string> namingParts,
-            IEnumerable<string> stampBlockNames)
+            IEnumerable<string> stampBlockNames,
+            SheetSpaceKind sourceSpace,
+            string sourceLayoutName)
         {
             InitializeComponent();
             _viewModel = new PlotFolhasViewModel(
@@ -37,7 +39,9 @@ namespace PluginConceito.Modules.PlotFolhas
                 defaultPlotStyle,
                 namingSeparator,
                 namingParts,
-                stampBlockNames);
+                stampBlockNames,
+                sourceSpace,
+                sourceLayoutName);
             DataContext = _viewModel;
         }
 

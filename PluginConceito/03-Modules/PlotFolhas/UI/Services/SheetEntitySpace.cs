@@ -5,11 +5,11 @@ using ZwSoft.ZwCAD.DatabaseServices;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class ActiveLayoutPaperSpace
+    internal sealed class SheetEntitySpace
     {
         private readonly IZwcadContext _zwcad;
 
-        public ActiveLayoutPaperSpace(IZwcadContext zwcad)
+        public SheetEntitySpace(IZwcadContext zwcad)
         {
             _zwcad = zwcad ?? throw new ArgumentNullException(nameof(zwcad));
         }
@@ -20,27 +20,20 @@ namespace PluginConceito.Modules.PlotFolhas
             if (document == null)
                 throw new InvalidOperationException("Não existe desenho ativo.");
 
-            if (string.Equals(
-                LayoutManager.Current.CurrentLayout,
-                "Model",
-                StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException(
-                    "O comando deve ser executado em um layout.");
-            }
-
             return document;
         }
 
-        public BlockTableRecord Open(Transaction transaction)
+        public BlockTableRecord Open(
+            Transaction transaction,
+            FolhaInfo sheet)
         {
             if (transaction == null)
                 throw new ArgumentNullException(nameof(transaction));
+            if (sheet == null)
+                throw new ArgumentNullException(nameof(sheet));
 
-            ObjectId layoutId = LayoutManager.Current.GetLayoutId(
-                LayoutManager.Current.CurrentLayout);
             var layout = (Layout)transaction.GetObject(
-                layoutId,
+                sheet.LayoutId,
                 OpenMode.ForRead);
             return (BlockTableRecord)transaction.GetObject(
                 layout.BlockTableRecordId,

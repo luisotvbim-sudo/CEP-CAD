@@ -4,14 +4,14 @@ using ZwSoft.ZwCAD.Geometry;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
-    internal sealed class PaperSpaceSheetRegion : IDisposable
+    internal sealed class SheetRegion : IDisposable
     {
         internal const double Tolerance = 1.0;
 
         private readonly Polyline _boundary;
         private readonly Extents2d _extents;
 
-        public PaperSpaceSheetRegion(Extents2d extents)
+        public SheetRegion(Extents2d extents)
         {
             _extents = extents;
             _boundary = CreateBoundary(extents);
