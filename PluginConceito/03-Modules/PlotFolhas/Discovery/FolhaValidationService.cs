@@ -26,8 +26,8 @@ namespace PluginConceito.Modules.PlotFolhas
             string dimensionError;
             if (!_formats.DimensionsMatch(
                 format,
-                sheet.Largura,
-                sheet.Altura,
+                sheet.LarguraPapel,
+                sheet.AlturaPapel,
                 out dimensionError))
             {
                 sheet.Erros.Add(dimensionError);
@@ -72,10 +72,27 @@ namespace PluginConceito.Modules.PlotFolhas
             FolhaInfo sheet)
         {
             Scale3d scale = block.ScaleFactors;
-            if (Math.Abs(Math.Abs(scale.X) - 1.0) > ScaleTolerance ||
-                Math.Abs(Math.Abs(scale.Y) - 1.0) > ScaleTolerance)
+            double scaleX = Math.Abs(scale.X);
+            double scaleY = Math.Abs(scale.Y);
+
+            if (sheet.IsModelSpace)
             {
-                sheet.Erros.Add("bloco deve estar na escala 1:1");
+                double reference = Math.Max(scaleX, scaleY);
+                if (scaleX <= ScaleTolerance ||
+                    scaleY <= ScaleTolerance ||
+                    Math.Abs(scaleX - scaleY) >
+                        Math.Max(ScaleTolerance, reference * ScaleTolerance))
+                {
+                    sheet.Erros.Add(
+                        "bloco no Model deve ter escala X/Y uniforme");
+                }
+                return;
+            }
+
+            if (Math.Abs(scaleX - 1.0) > ScaleTolerance ||
+                Math.Abs(scaleY - 1.0) > ScaleTolerance)
+            {
+                sheet.Erros.Add("bloco no Layout deve estar na escala 1:1");
             }
         }
 

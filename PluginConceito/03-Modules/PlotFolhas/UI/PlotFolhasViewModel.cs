@@ -19,7 +19,9 @@ namespace PluginConceito.Modules.PlotFolhas
             string defaultPlotStyle,
             string namingSeparator,
             IReadOnlyList<string> namingParts,
-            IEnumerable<string> stampBlockNames)
+            IEnumerable<string> stampBlockNames,
+            SheetSpaceKind sourceSpace,
+            string sourceLayoutName)
         {
             SheetCollection = new PlotSheetCollectionViewModel(sheets);
             Output = new PlotOutputOptionsViewModel(
@@ -33,7 +35,12 @@ namespace PluginConceito.Modules.PlotFolhas
                 namingSeparator,
                 namingParts);
             StampSelection = new StampSelectionViewModel(stampBlockNames);
-            StatusMessage = "Revise as folhas e configure os arquivos de saída.";
+            SourceSpace = sourceSpace;
+            SourceLayoutName = sourceLayoutName ?? string.Empty;
+            StatusMessage = IsModelSpace
+                ? "Sessão no Model: revise as folhas e configure as saídas."
+                : "Sessão no Layout " + SourceLayoutName +
+                    ": revise as folhas e configure as saídas.";
         }
 
         public PlotSheetCollectionViewModel SheetCollection { get; }
@@ -43,6 +50,56 @@ namespace PluginConceito.Modules.PlotFolhas
         public NamingStructureViewModel NamingStructure { get; }
 
         public StampSelectionViewModel StampSelection { get; }
+
+        public SheetSpaceKind SourceSpace { get; }
+
+        public string SourceLayoutName { get; }
+
+        public bool IsModelSpace
+        {
+            get { return SourceSpace == SheetSpaceKind.Model; }
+        }
+
+        public string SourceSubtitle
+        {
+            get
+            {
+                return IsModelSpace
+                    ? "Revise, nomeie e gere as folhas encontradas no Model."
+                    : "Revise, nomeie e gere as folhas encontradas no Layout " +
+                        SourceLayoutName + ".";
+            }
+        }
+
+        public string SourceDetail
+        {
+            get
+            {
+                return IsModelSpace
+                    ? "Model"
+                    : "Layout: " + SourceLayoutName;
+            }
+        }
+
+        public string GenerateButtonText
+        {
+            get
+            {
+                return IsModelSpace
+                    ? "Gerar arquivos do Model"
+                    : "Gerar arquivos do Layout";
+            }
+        }
+
+        public string ZoomToolTip
+        {
+            get
+            {
+                return IsModelSpace
+                    ? "Aproximar esta folha no Model"
+                    : "Aproximar esta folha no Layout";
+            }
+        }
 
         public string StatusMessage
         {

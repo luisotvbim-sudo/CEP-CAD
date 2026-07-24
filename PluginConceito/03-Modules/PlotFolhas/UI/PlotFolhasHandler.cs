@@ -7,11 +7,6 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class PlotFolhasHandler
     {
-        private const string NoSheetsMessage =
-            "Nenhuma folha foi encontrada no layout atual.\n\n" +
-            "Use blocos com nomes exatos CEP-A4, CEP-A3, CEP-A2, CEP-A1, CEP-A0, " +
-            "CEP-A1E ou CEP-A0E.";
-
         private readonly IModuleContext _context;
         private readonly PlotFolhasSessionService _sessionService;
         private readonly PlotFolhasNamingWorkflow _namingWorkflow;
@@ -60,7 +55,9 @@ namespace PluginConceito.Modules.PlotFolhas
                 PlotFolhasSession session = _sessionService.Create();
                 if (!session.HasSheets)
                 {
-                    ZwcadApplication.ShowAlertDialog(NoSheetsMessage);
+                    CloseCurrentWindow();
+                    ZwcadApplication.ShowAlertDialog(
+                        BuildNoSheetsMessage(session));
                     return;
                 }
 
@@ -90,11 +87,24 @@ namespace PluginConceito.Modules.PlotFolhas
                 session.DefaultPlotStyle,
                 session.NamingSeparator,
                 session.NamingParts,
-                blockNames);
+                blockNames,
+                session.SourceSpace,
+                session.SourceLayoutName);
 
             AttachWindowEvents(_window);
             _documentTracker.Attach(_window, session.Document);
             ZwcadApplication.ShowModelessWindow(_window);
+        }
+
+        private static string BuildNoSheetsMessage(
+            PlotFolhasSession session)
+        {
+            string source = session.SourceSpace == SheetSpaceKind.Model
+                ? "Model"
+                : "layout " + session.SourceLayoutName;
+            return "Nenhuma folha foi encontrada no " + source + ".\n\n" +
+                "Use blocos com nomes exatos CEP-A4, CEP-A3, CEP-A2, CEP-A1, " +
+                "CEP-A0, CEP-A1E ou CEP-A0E.";
         }
 
         private void CloseCurrentWindow()
