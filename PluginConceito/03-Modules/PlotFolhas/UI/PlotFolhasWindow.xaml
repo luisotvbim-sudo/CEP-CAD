@@ -3,97 +3,311 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:ClassModifier="internal"
         Title="CNT · Plotar folhas"
-        Width="1240" Height="780" MinWidth="980" MinHeight="620"
+        Width="1280" Height="820" MinWidth="1040" MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="#F4F6F8"
+        Background="#F2F3F5"
         FontFamily="Segoe UI" FontSize="13"
+        TextOptions.TextFormattingMode="Display"
         PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
     <Window.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#F08F38" />
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF9F40" />
-        <SolidColorBrush x:Key="TextBrush" Color="#243038" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#65747D" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#C0C0C0" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#F47C20" />
+        <SolidColorBrush x:Key="AccentDarkBrush" Color="#D96512" />
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#FFF0E5" />
+        <SolidColorBrush x:Key="AccentSoftHoverBrush" Color="#FFE1CC" />
+        <SolidColorBrush x:Key="TextBrush" Color="#25282C" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#697078" />
+        <SolidColorBrush x:Key="SubtleBrush" Color="#949AA1" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#DDE1E5" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="#F7F8F9" />
+        <SolidColorBrush x:Key="DarkSurfaceBrush" Color="#34383E" />
+        <SolidColorBrush x:Key="DarkSurfaceAltBrush" Color="#42474E" />
+        <SolidColorBrush x:Key="DangerSoftBrush" Color="#FFF1ED" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#C84C32" />
+
+        <DropShadowEffect x:Key="CardShadow"
+                          Color="#18000000"
+                          BlurRadius="8"
+                          ShadowDepth="1"
+                          Direction="270"
+                          Opacity="0.28" />
+        <DropShadowEffect x:Key="FloatingShadow"
+                          Color="#22000000"
+                          BlurRadius="12"
+                          ShadowDepth="2"
+                          Direction="270"
+                          Opacity="0.34" />
 
         <Style TargetType="Button">
-            <Setter Property="Padding" Value="14,8" />
-            <Setter Property="Background" Value="White" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="16,7" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource AccentSoftHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="ButtonBorder" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton"
+               TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="MinWidth" Value="170" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Effect" Value="{StaticResource CardShadow}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentDarkBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentDarkBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TonalButton"
+               TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource AccentDarkBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentSoftHoverBrush}" />
+        </Style>
+
+        <Style x:Key="CompactButton"
+               TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="Padding" Value="11,4" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="IconButton"
+               TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#5A6068" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-                    <Setter Property="Foreground" Value="White" />
                     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="155" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
-                    <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
-                    <Setter Property="Foreground" Value="White" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+
         <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="11,7" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="SelectionBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TextBoxBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="TextBoxBorder" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="TextBoxBorder" Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                <Setter TargetName="TextBoxBorder" Property="Opacity" Value="0.6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
-        <Style TargetType="ComboBox">
-            <Setter Property="Padding" Value="6,5" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="CheckBorder"
+                                    Width="18" Height="18"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="#AEB4BA"
+                                    BorderThickness="1.3"
+                                    CornerRadius="4"
+                                    VerticalAlignment="Center">
+                                <TextBlock x:Name="CheckMark"
+                                           Text="✓"
+                                           FontSize="13"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter Margin="7,0,0,0"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
         <Style x:Key="SummaryCard" TargetType="Border">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Background" Value="#454A51" />
+            <Setter Property="BorderBrush" Value="#565C64" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Padding" Value="13,9" />
             <Setter Property="Margin" Value="0,0,8,0" />
         </Style>
+
         <Style x:Key="SectionBorder" TargetType="Border">
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Effect" Value="{StaticResource CardShadow}" />
         </Style>
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#EDF1F3" />
-            <Setter Property="Foreground" Value="#46545C" />
+
+        <Style TargetType="Expander">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="10,9" />
-            <Setter Property="BorderBrush" Value="#DCE3E7" />
-            <Setter Property="BorderThickness" Value="0,0,1,1" />
         </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#ECEEF0" />
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#ECEEF1" />
+            <Setter Property="Foreground" Value="#4C5259" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="12,11" />
+            <Setter Property="BorderBrush" Value="#DDE1E5" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+
         <Style TargetType="DataGridCell">
-            <Setter Property="Padding" Value="8,5" />
-            <Setter Property="BorderBrush" Value="#E7ECEF" />
-            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="Padding" Value="11,7" />
+            <Setter Property="BorderBrush" Value="#ECEEF0" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         </Style>
+
         <Style TargetType="DataGridRow">
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="ToolTip" Value="{Binding Status}" />
+            <Setter Property="BorderThickness" Value="0" />
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFF8F2" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                </Trigger>
                 <DataTrigger Binding="{Binding Valida}" Value="False">
-                    <Setter Property="Background" Value="#FFF2F0" />
+                    <Setter Property="Background" Value="{StaticResource DangerSoftBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style TargetType="ProgressBar">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Background" Value="#E3E6E9" />
+        </Style>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="{StaticResource DarkSurfaceBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
     </Window.Resources>
 
-    <Grid Margin="18">
+    <Grid Margin="22">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -104,91 +318,135 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,14">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock Text="Plotar folhas" FontSize="25" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
-                <TextBlock Text="{Binding SourceSubtitle}" Margin="0,3,0,0" Foreground="{StaticResource MutedBrush}" />
-                <StackPanel Orientation="Horizontal" Margin="0,9,0,0">
-                    <TextBlock Text="Origem" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource MutedBrush}" />
-                    <Border CornerRadius="4,0,0,4" BorderThickness="1" Padding="10,4">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="#EDF1F3" />
-                                <Setter Property="BorderBrush" Value="#C0C0C0" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsModelSpace}" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <TextBlock Text="MODEL" FontWeight="SemiBold">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Border Grid.Row="0"
+                Margin="0,0,0,14"
+                Padding="20,16"
+                Background="{StaticResource DarkSurfaceBrush}"
+                CornerRadius="12"
+                Effect="{StaticResource FloatingShadow}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Width="48"
+                       Height="48"
+                       Source="/PluginConceito;component/03-Modules/PlotFolhas/Resources/Logo_Versao_Reduzida.png"
+                       Stretch="Uniform"
+                       VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       ToolTip="CNT" />
+                <StackPanel Grid.Column="1" Margin="14,0,20,0" VerticalAlignment="Center">
+                    <TextBlock Text="Plotar folhas"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="White" />
+                    <TextBlock Text="{Binding SourceSubtitle}"
+                               Margin="0,3,0,0"
+                               Foreground="#BBC0C6" />
+                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                        <TextBlock Text="ORIGEM"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="9"
+                                   Foreground="#8F969E" />
+                        <Border CornerRadius="4,0,0,4" BorderThickness="1" Padding="8,3">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
+                                    <Setter Property="BorderBrush" Value="#626972" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsModelSpace}" Value="True">
-                                            <Setter Property="Foreground" Value="White" />
+                                            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Border>
-                    <Border CornerRadius="0,4,4,0" BorderThickness="1" Padding="10,4" Margin="-1,0,0,0">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="#EDF1F3" />
-                                <Setter Property="BorderBrush" Value="#C0C0C0" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsModelSpace}" Value="False">
-                                        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <TextBlock Text="LAYOUT" FontWeight="SemiBold">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+                            </Border.Style>
+                            <TextBlock Text="MODEL" FontSize="10" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#B8BDC3" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsModelSpace}" Value="True">
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <Border CornerRadius="0,4,4,0" BorderThickness="1" Padding="8,3" Margin="-1,0,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
+                                    <Setter Property="BorderBrush" Value="#626972" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsModelSpace}" Value="False">
-                                            <Setter Property="Foreground" Value="White" />
+                                            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Border>
-                    <TextBlock Text="{Binding SourceDetail}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource MutedBrush}" />
+                            </Border.Style>
+                            <TextBlock Text="LAYOUT" FontSize="10" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#B8BDC3" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsModelSpace}" Value="False">
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock Text="{Binding SourceDetail}"
+                                   Margin="9,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="10"
+                                   Foreground="#B8BDC3" />
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="Atualizar" Click="RefreshClick" Margin="0,0,10,0" ToolTip="Recarrega as folhas e informações do Model ou Layout ativo." />
-                <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="Folhas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.TotalCount}" FontWeight="Bold"/></StackPanel>
-                </Border>
-                <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="PDF  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.PdfCount}" FontWeight="Bold"/></StackPanel>
-                </Border>
-                <Border Style="{StaticResource SummaryCard}">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="DWG  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.DwgCount}" FontWeight="Bold"/></StackPanel>
-                </Border>
-                <Border Style="{StaticResource SummaryCard}" Margin="0">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="Alertas  " Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding SheetCollection.IssueCount}" FontWeight="Bold" Foreground="#A35718"/></StackPanel>
-                </Border>
-            </StackPanel>
-        </Grid>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content=""
+                            Style="{StaticResource IconButton}"
+                            Click="RefreshClick"
+                            Margin="0,0,12,0"
+                            ToolTip="Atualizar folhas e informações do Model ou Layout ativo" />
+                    <Border Style="{StaticResource SummaryCard}">
+                        <StackPanel>
+                            <TextBlock Text="FOLHAS" FontSize="10" Foreground="#B8BDC3" />
+                            <TextBlock Text="{Binding SheetCollection.TotalCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource SummaryCard}">
+                        <StackPanel>
+                            <TextBlock Text="PDF" FontSize="10" Foreground="#B8BDC3" />
+                            <TextBlock Text="{Binding SheetCollection.PdfCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource SummaryCard}">
+                        <StackPanel>
+                            <TextBlock Text="DWG" FontSize="10" Foreground="#B8BDC3" />
+                            <TextBlock Text="{Binding SheetCollection.DwgCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource SummaryCard}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="ALERTAS" FontSize="10" Foreground="#B8BDC3" />
+                            <TextBlock Text="{Binding SheetCollection.IssueCount}" FontSize="18" FontWeight="SemiBold" Foreground="#FFAA65" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource SectionBorder}" Margin="0,0,0,10">
-            <Expander Header="Estrutura de nomenclatura" Padding="12,9" IsExpanded="False">
-                <Grid Margin="0,10,0,2">
+        <Border Grid.Row="1" Style="{StaticResource SectionBorder}" Margin="0,0,0,12">
+            <Expander Header="Estrutura de nomenclatura" Padding="16,12" IsExpanded="False">
+                <Grid Margin="0,12,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -217,36 +475,67 @@
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
-                        <Button Content="− campo" Click="RemoveNamingPartClick" Margin="0,0,6,0" />
-                        <Button Content="+ campo" Click="AddNamingPartClick" Margin="0,0,10,0" />
-                        <Button Content="Aplicar a todas" Click="ApplyStructuredNameClick" />
+                        <Button Content="− campo" Style="{StaticResource CompactButton}" Click="RemoveNamingPartClick" Margin="0,0,6,0" />
+                        <Button Content="+ campo" Style="{StaticResource CompactButton}" Click="AddNamingPartClick" Margin="0,0,10,0" />
+                        <Button Content="Aplicar a todas" Style="{StaticResource TonalButton}" Click="ApplyStructuredNameClick" />
                     </StackPanel>
                 </Grid>
             </Expander>
         </Border>
 
-        <Grid Grid.Row="2" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="310" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding SheetCollection.SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Pesquisar por número, formato, nome ou status" />
-            <CheckBox Grid.Column="1" Content="Somente alertas" IsChecked="{Binding SheetCollection.ShowOnlyIssues}" VerticalAlignment="Center" Margin="12,0,18,0" />
-            <TextBlock Grid.Column="2" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}">
-                <Run Text="Exibindo "/><Run Text="{Binding SheetCollection.VisibleCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" folha(s)"/>
-            </TextBlock>
-            <StackPanel Grid.Column="4" Orientation="Horizontal">
-                <Button Content="PDF: todas" Click="SelectAllPdfClick" Margin="0,0,6,0" />
-                <Button Content="PDF: nenhuma" Click="ClearAllPdfClick" Margin="0,0,12,0" />
-                <Button Content="DWG: todas" Click="SelectAllDwgClick" Margin="0,0,6,0" />
-                <Button Content="DWG: nenhuma" Click="ClearAllDwgClick" />
-            </StackPanel>
-        </Grid>
+        <Border Grid.Row="2"
+                Style="{StaticResource SectionBorder}"
+                Margin="0,0,0,12"
+                Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="330" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="32" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text=""
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="15"
+                               Foreground="{StaticResource MutedBrush}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Panel.ZIndex="2" />
+                    <TextBox Grid.ColumnSpan="2"
+                             Padding="38,7,11,7"
+                             Text="{Binding SheetCollection.SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Pesquisar por número, formato, nome ou status" />
+                </Grid>
+                <CheckBox Grid.Column="1"
+                          Content="Somente alertas"
+                          IsChecked="{Binding SheetCollection.ShowOnlyIssues}"
+                          VerticalAlignment="Center"
+                          Margin="14,0,18,0" />
+                <Border Grid.Column="2"
+                        Background="{StaticResource SurfaceAltBrush}"
+                        CornerRadius="12"
+                        Padding="10,5"
+                        VerticalAlignment="Center">
+                    <TextBlock Foreground="{StaticResource MutedBrush}">
+                        <Run Text="Exibindo "/><Run Text="{Binding SheetCollection.VisibleCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" folha(s)"/>
+                    </TextBlock>
+                </Border>
+                <StackPanel Grid.Column="4" Orientation="Horizontal">
+                    <Button Content="PDF: todas" Style="{StaticResource CompactButton}" Click="SelectAllPdfClick" Margin="0,0,6,0" />
+                    <Button Content="PDF: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllPdfClick" Margin="0,0,12,0" />
+                    <Button Content="DWG: todas" Style="{StaticResource CompactButton}" Click="SelectAllDwgClick" Margin="0,0,6,0" />
+                    <Button Content="DWG: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllDwgClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
-        <Border Grid.Row="3" Style="{StaticResource SectionBorder}">
+        <Border Grid.Row="3" Style="{StaticResource SectionBorder}" ClipToBounds="True">
             <DataGrid x:Name="SheetsGrid"
                       ItemsSource="{Binding SheetCollection.View}"
                       SelectedItem="{Binding SelectedSheet}"
@@ -254,7 +543,7 @@
                       CanUserAddRows="False" CanUserDeleteRows="False"
                       CanUserReorderColumns="True" CanUserSortColumns="True"
                       HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      RowHeight="39" AlternatingRowBackground="#FAFBFC"
+                      RowHeight="44" AlternatingRowBackground="#FBFBFC"
                       SelectionMode="Single" SelectionUnit="FullRow"
                       BorderThickness="0"
                       CellEditEnding="OnCellEditEnding">
@@ -276,7 +565,10 @@
                     <DataGridTemplateColumn Header="" Width="76" CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="Zoom" Padding="9,4" Tag="{Binding}" Click="ZoomSheetClick"
+                                <Button Content="Zoom"
+                                        Style="{StaticResource CompactButton}"
+                                        Tag="{Binding}"
+                                        Click="ZoomSheetClick"
                                         ToolTip="{Binding DataContext.ZoomToolTip, RelativeSource={RelativeSource AncestorType=Window}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -285,8 +577,23 @@
             </DataGrid>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource SectionBorder}" Margin="0,10,0,10" Padding="12">
-            <Grid>
+        <Border Grid.Row="4" Style="{StaticResource SectionBorder}" Margin="0,12,0,12" Padding="16,14">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <Border Width="30" Height="30" Background="{StaticResource AccentSoftBrush}" CornerRadius="7">
+                        <TextBlock Text=""
+                                   FontFamily="Segoe MDL2 Assets"
+                                   Foreground="{StaticResource AccentDarkBrush}"
+                                   FontSize="14"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Margin="10,0,0,0">
+                        <TextBlock Text="Configuração de saída" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="Defina destino, plotter e padrão de impressão." FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                    </StackPanel>
+                </StackPanel>
+                <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="90" />
                     <ColumnDefinition Width="2*" />
@@ -302,19 +609,20 @@
                 <TextBox Grid.Column="1"
                          Text="{Binding Output.OutputFolder, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Se esta pasta não for alterada, será criada automaticamente uma subpasta Emissão NN." />
-                <Button Grid.Column="2" Content="Escolher…" Click="BrowseFolderClick" Margin="7,0,18,0" />
+                <Button Grid.Column="2" Content="Escolher…" Style="{StaticResource TonalButton}" Click="BrowseFolderClick" Margin="7,0,18,0" />
                 <TextBlock Grid.Column="3" Text="CTB / STB" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
                 <ComboBox Grid.Column="4" ItemsSource="{Binding Output.PlotStyles}" SelectedItem="{Binding Output.CtbName}" />
 
                 <TextBlock Grid.Row="1" Text="Plotter" VerticalAlignment="Center" Margin="0,9,0,0" Foreground="{StaticResource MutedBrush}" />
                 <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Output.Devices}" SelectedItem="{Binding Output.DeviceName}" Margin="0,9,0,0" />
                 <CheckBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Sobrescrever arquivos existentes" IsChecked="{Binding Output.OverwriteExisting}" VerticalAlignment="Center" Margin="0,9,0,0" />
-            </Grid>
+                </Grid>
+            </StackPanel>
         </Border>
 
-        <Border Grid.Row="5" Style="{StaticResource SectionBorder}" Margin="0,0,0,10" Padding="12">
-            <Expander Header="Copiar nome para selo" Padding="12,9" IsExpanded="False">
-                <Grid Margin="0,10,0,2">
+        <Border Grid.Row="5" Style="{StaticResource SectionBorder}" Margin="0,0,0,12">
+            <Expander Header="Copiar nome para selo" Padding="16,12" IsExpanded="False">
+                <Grid Margin="0,12,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="*" />
@@ -346,6 +654,7 @@
                                Foreground="{StaticResource MutedBrush}" />
                     <Button Grid.Row="1" Grid.Column="3"
                             Content="Usar atributo nos nomes"
+                            Style="{StaticResource TonalButton}"
                             Click="LoadNamesFromStampClick"
                             Margin="0,10,0,0"
                             HorizontalAlignment="Right"
@@ -354,40 +663,90 @@
             </Expander>
         </Border>
 
-        <Grid Grid.Row="6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <ProgressBar Width="80" Height="5" IsIndeterminate="True" Margin="0,0,10,0">
-                    <ProgressBar.Style>
-                        <Style TargetType="ProgressBar">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers><DataTrigger Binding="{Binding IsBusy}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                        </Style>
-                    </ProgressBar.Style>
-                </ProgressBar>
-                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis" />
-            </StackPanel>
-            <Button Grid.Column="1" Content="Salvar nomenclatura" Click="SaveNamesClick" Margin="10,0" MinWidth="175" />
-            <Button Grid.Column="2" Content="{Binding GenerateButtonText}" Click="PlotClick" Style="{StaticResource PrimaryButton}" />
-        </Grid>
+        <Border Grid.Row="6"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="14,11"
+                Effect="{StaticResource CardShadow}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="9" Height="9"
+                            Background="{StaticResource AccentBrush}"
+                            CornerRadius="5"
+                            Margin="0,0,10,0" />
+                    <ProgressBar Width="72" Height="4" IsIndeterminate="True" Margin="0,0,10,0">
+                        <ProgressBar.Style>
+                            <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ProgressBar.Style>
+                    </ProgressBar>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{StaticResource MutedBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Salvar nomenclatura"
+                        Click="SaveNamesClick"
+                         Margin="10,0"
+                         MinWidth="175" />
+                <Button Grid.Column="2"
+                        Content="{Binding GenerateButtonText}"
+                        Click="PlotClick"
+                        Style="{StaticResource PrimaryButton}" />
+            </Grid>
+        </Border>
 
-        <Border Grid.RowSpan="7" Background="#60FFFFFF" Panel.ZIndex="20">
+        <Border Grid.RowSpan="7" Background="#8A2A2D31" Panel.ZIndex="20">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />
                     <Style.Triggers><DataTrigger Binding="{Binding IsBusy}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
                 </Style>
             </Border.Style>
-            <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6"
-                    Padding="24,18" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <StackPanel Width="340">
-                    <TextBlock Text="Processando arquivos" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                    <ProgressBar Height="6" IsIndeterminate="True" Margin="0,14,0,10" />
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedBrush}" TextAlignment="Center" TextWrapping="Wrap" />
+            <Border Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    Padding="30,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Effect="{StaticResource FloatingShadow}">
+                <StackPanel Width="360">
+                    <Border Width="48" Height="48"
+                            Background="{StaticResource AccentSoftBrush}"
+                            CornerRadius="12"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text=""
+                                   FontFamily="Segoe MDL2 Assets"
+                                   Foreground="{StaticResource AccentBrush}"
+                                   FontSize="20"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="Processando arquivos"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,13,0,0" />
+                    <ProgressBar Height="6" IsIndeterminate="True" Margin="0,16,0,12" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{StaticResource MutedBrush}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
         </Border>
