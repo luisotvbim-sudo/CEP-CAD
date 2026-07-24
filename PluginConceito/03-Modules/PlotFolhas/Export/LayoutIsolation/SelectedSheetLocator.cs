@@ -12,7 +12,7 @@ namespace PluginConceito.Modules.PlotFolhas
             IReadOnlyList<ObjectId> entityIds,
             Transaction transaction,
             FolhaInfo sheet,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             ObjectId selectedSheetId = FindByHandle(database, entityIds, sheet);
             if (!selectedSheetId.IsNull) return selectedSheetId;
@@ -48,7 +48,7 @@ namespace PluginConceito.Modules.PlotFolhas
             IEnumerable<ObjectId> entityIds,
             Transaction transaction,
             FolhaInfo sheet,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             ObjectId bestId = ObjectId.Null;
             double bestOverlap = 0.0;

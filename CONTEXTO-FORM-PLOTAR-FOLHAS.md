@@ -31,12 +31,13 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 │   ├── PlotFolhasModule.cs       # ICntModule
 │   └── PlotFolhasCompositionRoot.cs # Compõe serviços e handler
 ├── Discovery/
-│   ├── FolhaScanner.cs           # Escaneia folhas no layout (CEP-*)
+│   ├── FolhaScanner.cs           # Escaneia folhas no Model/Layout ativo (CEP-*)
 │   ├── FolhaBoundaryResolver.cs  # Resolve limites e transformações
 │   └── FolhaValidationService.cs # Valida formato, escala e sobreposição
 ├── Domain/
 │   ├── FolhaFormatCatalog.cs     # Catálogo de formatos CEP-A4...CEP-A0E
-│   └── FolhaInfo.cs              # Modelo da folha (INotifyPropertyChanged)
+│   ├── FolhaInfo.cs              # Modelo da folha (INotifyPropertyChanged)
+│   └── SheetSpaceKind.cs         # Origem Model ou Layout
 ├── Naming/
 │   ├── ArquivoNomeService.cs     # Sanitização e validação de nomes
 │   ├── FolhaNomenclaturaService.cs # Leitura/escrita do atributo CNT_NOME_ARQUIVO
@@ -53,7 +54,8 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 │   ├── DwgSheetExportService.cs  # Exporta uma única folha
 │   ├── Infrastructure/           # Operações CAD compartilhadas
 │   ├── LayoutIsolation/          # Isolamento do Paper Space e vista inicial
-│   └── ModelIsolation/           # Isolamento do Model por viewports
+│   ├── ModelIsolation/           # Isolamento do Model por viewports de Layout
+│   └── ModelSpace/               # Limpeza espacial de folha originada no Model
 ├── Navigation/
 │   └── SheetZoomService.cs       # Zoom para uma folha específica
 └── UI/
@@ -89,7 +91,7 @@ Serviços especializados     → regras de negócio, acesso ao ZWCAD, geração 
 ```
 PlotFolhasHandler.Execute()
   → PlotFolhasSessionService.Create()
-    → FolhaScanner.ScanActiveLayout()         // descobre folhas CEP-* no layout
+    → FolhaScanner.ScanActiveSpace()          // descobre folhas CEP-* no Model/Layout
     → FolhaNomenclaturaService.LoadSavedNames() // carrega CNT_NOME_ARQUIVO de cada bloco
     → Atribui nomes automáticos se vazios
     → PlotService.GetPlotDevices() / GetPlotStyleSheets()
@@ -231,7 +233,7 @@ int SaveNames(Document, IEnumerable<FolhaInfo>)         // salva no DWG, retorna
 - `GetBlockNames()` escaneia a BlockTable e filtra blocos que têm `AttributeDefinition`
 - `GetAttributeTags(blockName)` retorna tags do bloco selecionado (recursivo, blocos aninhados)
 - `FillSeloAttributes(sheets, blockName, tag)` para cada folha:
-  1. Busca o bloco de selo no **Paper Space** (não dentro do bloco CEP)
+  1. Busca o bloco de selo no **mesmo espaço da folha** (não dentro do bloco CEP)
   2. Usa interseção geométrica com os limites da folha (maior área de sobreposição)
   3. Preenche o atributo com `Path.GetFileNameWithoutExtension(sheet.NomeArquivo)`
   4. Chama `RecordGraphicsModified(true)` no bloco de selo
@@ -274,16 +276,16 @@ string TryOpenOutputFolder(folder)
 
 ### 5.6 Descoberta e validação de folhas
 
-`FolhaScanner` escaneia o layout ativo por blocos CEP-*. O cálculo de limites fica em `FolhaBoundaryResolver`; as validações ficam em `FolhaValidationService`.
+`FolhaScanner` escaneia somente o Model ou Layout ativo por blocos CEP-*. O cálculo de limites fica em `FolhaBoundaryResolver`; as validações ficam em `FolhaValidationService`.
 
 **Regras**:
-- Só roda em Layout (não Model)
+- Roda no Model ou no Layout ativo e registra `SheetSpaceKind` na folha
 - Reconhece blocos: CEP-A4, CEP-A3, CEP-A2, CEP-A1, CEP-A0, CEP-A1E, CEP-A0E
 - Suporta blocos dinâmicos (`DynamicBlockTableRecord`)
 - Busca limites na layer `502-CEP-FOR-06` (recursivo, até 8 níveis)
 - Fallback: ponto de inserção + dimensões do formato
 - Último fallback: `GeometricExtents`
-- Valida escala 1:1, rotação 90°, dimensões, sobreposição
+- Valida escala 1:1 no Layout ou escala uniforme X/Y no Model, rotação 90°, dimensões e sobreposição
 - Ordena: cima→baixo (Y desc), esquerda→direita (X asc), tolerância 10mm para mesma linha
 
 ### 5.7 Demais serviços
@@ -294,7 +296,7 @@ string TryOpenOutputFolder(folder)
 | `PlotService` | Lista dispositivos/CTBs, executa plotagem PDF folha a folha |
 | `PlotExecutionService` | Orquestra SaveNames → Plot PDF → Export DWG |
 | `DwgExportService` | Orquestra o lote e delega cada folha ao `DwgSheetExportService` |
-| `DwgSheetExportService` | Clona o banco, isola Layout/Model, prepara a vista e publica o arquivo |
+| `DwgSheetExportService` | Clona o banco, escolhe a estratégia Model/Layout, prepara a vista e publica o arquivo |
 | `SheetZoomService` | Navega/Zoom para os limites de uma folha |
 | `FolhaFormatCatalog` | Catálogo estático de formatos e dimensões |
 | `NamingStandardParser` | Detecta separador e parseia nome em partes |
@@ -378,13 +380,13 @@ string TryOpenOutputFolder(folder)
 ### 7.3 Preenchimento do selo
 
 - Ocorre tanto em "Salvar nomenclatura" quanto em "Gerar arquivos"
-- Busca o bloco de selo no Paper Space por interseção geométrica com a folha
+- Busca o bloco de selo no mesmo espaço da folha por interseção geométrica
 - Pega o bloco com maior área de sobreposição
 - Após preencher, chama `ATTSYNC N nomeDoBloco` para sincronizar
 
 ### 7.4 Exportação DWG isolada
 
-Fluxo por folha:
+Fluxo por folha originada em Layout:
 
 1. `DwgDatabaseCloner` cria um banco independente com `Wblock()`;
 2. `DwgLayoutIsolator` mantém a folha, entidades pertencentes a ela e suas viewports;
@@ -392,7 +394,15 @@ Fluxo por folha:
 4. `DwgOpeningViewService` deixa o Layout ativo e centralizado na folha;
 5. `DwgOutputFile` salva em temporário, publica no destino e verifica o resultado.
 
-Política obrigatória do Model:
+Fluxo por folha originada no Model:
+
+1. `DwgDatabaseCloner` cria um banco independente com `Wblock()`;
+2. `ModelSpaceSheetIsolator` mantém a folha selecionada e entidades que interceptam sua região;
+3. outras folhas e entidades externas são apagadas, sem recortar a geometria preservada;
+4. `DwgModelOpeningViewService` deixa o Model ativo e centralizado;
+5. `DwgOutputFile` publica o arquivo com a mesma proteção do fluxo de Layout.
+
+Política do Model projetado por viewports de uma folha de Layout:
 
 - nenhuma viewport de Model na folha: apagar todo o Model;
 - uma ou mais viewports válidas: manter entidades cujos limites intersectem as regiões projetadas;

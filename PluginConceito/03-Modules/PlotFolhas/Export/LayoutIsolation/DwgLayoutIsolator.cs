@@ -28,7 +28,7 @@ namespace PluginConceito.Modules.PlotFolhas
             if (sheet == null) throw new ArgumentNullException(nameof(sheet));
 
             using (Transaction transaction = database.TransactionManager.StartTransaction())
-            using (var sheetRegion = new PaperSpaceSheetRegion(sheet.Limites))
+            using (var sheetRegion = new SheetRegion(sheet.Limites))
             {
                 Layout layout = CadEntityAccess.OpenLayout(database, sheet.LayoutName, transaction);
                 var paperSpace = (BlockTableRecord)transaction.GetObject(
@@ -74,7 +74,7 @@ namespace PluginConceito.Modules.PlotFolhas
             ObjectId selectedSheetId,
             PaperSpaceViewportSelection viewports,
             Transaction transaction,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             var result = new DwgLayoutIsolationResult
             {
