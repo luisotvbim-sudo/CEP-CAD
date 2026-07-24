@@ -8,7 +8,7 @@ namespace PluginConceito.Modules.PlotFolhas
         public PaperSpaceViewportSelection Select(
             IEnumerable<ObjectId> entityIds,
             Transaction transaction,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             var entityIdList = new List<ObjectId>(entityIds);
             ObjectId baseViewportId = PaperSpaceBaseViewportResolver.Resolve(
@@ -38,7 +38,7 @@ namespace PluginConceito.Modules.PlotFolhas
         private static bool BelongsToSheet(
             Viewport viewport,
             Transaction transaction,
-            PaperSpaceSheetRegion sheetRegion)
+            SheetRegion sheetRegion)
         {
             try
             {

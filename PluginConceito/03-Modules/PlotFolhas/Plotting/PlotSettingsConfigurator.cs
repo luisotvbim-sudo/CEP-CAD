@@ -15,12 +15,11 @@ namespace PluginConceito.Modules.PlotFolhas
             validator.SetPlotType(settings, ZwSoft.ZwCAD.DatabaseServices.PlotType.Window);
             validator.SetPlotWindowArea(settings, sheet.Limites);
             validator.SetPlotCentered(settings, true);
-            validator.SetUseStandardScale(settings, true);
-            validator.SetStdScaleType(settings, StdScaleType.StdScale1To1);
+            ConfigureScale(validator, settings, sheet);
             validator.SetClosestMediaName(
                 settings,
-                Math.Abs(sheet.Largura),
-                Math.Abs(sheet.Altura),
+                Math.Abs(sheet.LarguraPapel),
+                Math.Abs(sheet.AlturaPapel),
                 PlotPaperUnit.Millimeters,
                 true);
             validator.SetPlotRotation(settings, PlotRotation.Degrees000);
@@ -29,6 +28,32 @@ namespace PluginConceito.Modules.PlotFolhas
             settings.PlotPlotStyles = !string.IsNullOrWhiteSpace(ctbName);
             settings.ShowPlotStyles = !string.IsNullOrWhiteSpace(ctbName);
             if (!string.IsNullOrWhiteSpace(ctbName)) validator.SetCurrentStyleSheet(settings, ctbName);
+        }
+
+        private static void ConfigureScale(
+            PlotSettingsValidator validator,
+            PlotSettings settings,
+            FolhaInfo sheet)
+        {
+            if (!sheet.IsModelSpace)
+            {
+                validator.SetUseStandardScale(settings, true);
+                validator.SetStdScaleType(
+                    settings,
+                    StdScaleType.StdScale1To1);
+                return;
+            }
+
+            double scale = Math.Abs(sheet.PlotScaleFactor);
+            if (scale <= 0.0)
+            {
+                scale = 1.0;
+            }
+
+            validator.SetUseStandardScale(settings, false);
+            validator.SetCustomPrintScale(
+                settings,
+                new CustomScale(1.0, scale));
         }
     }
 }

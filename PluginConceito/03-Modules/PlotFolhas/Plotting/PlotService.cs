@@ -179,7 +179,11 @@ namespace PluginConceito.Modules.PlotFolhas
             Action<string> progress)
         {
             LayoutManager.Current.CurrentLayout = sheet.LayoutName;
-            Report(progress, "Plot folha " + sheet.Sequencia + ": layout ativo definido.");
+            Report(
+                progress,
+                "Plot folha " + sheet.Sequencia +
+                ": espaço de origem ativo definido como " +
+                sheet.LayoutName + ".");
 
             var layout = (Layout)transaction.GetObject(sheet.LayoutId, OpenMode.ForRead);
             using (var settings = new PlotSettings(layout.ModelType))

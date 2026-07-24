@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using PluginConceito.Application.Contracts;
 using ZwSoft.ZwCAD.ApplicationServices;
+using ZwSoft.ZwCAD.DatabaseServices;
 
 namespace PluginConceito.Modules.PlotFolhas
 {
@@ -34,11 +35,16 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public PlotFolhasSession Create()
         {
-            IReadOnlyList<FolhaInfo> sheets = _scanner.ScanActiveLayout();
             Document document = _zwcad.ActiveDocument;
+            string sourceLayoutName = LayoutManager.Current.CurrentLayout;
+            SheetSpaceKind sourceSpace = GetSourceSpace(document, sourceLayoutName);
+            IReadOnlyList<FolhaInfo> sheets = _scanner.ScanActiveSpace();
             if (sheets.Count == 0)
             {
-                return PlotFolhasSession.Empty(document);
+                return PlotFolhasSession.Empty(
+                    document,
+                    sourceSpace,
+                    sourceLayoutName);
             }
 
             string baseName = GetDefaultBaseName(document);
@@ -66,7 +72,39 @@ namespace PluginConceito.Modules.PlotFolhas
                 _plotService.GetDefaultPlotDevice(devices),
                 _plotService.GetDefaultPlotStyle(styles),
                 parsedName.Separator,
-                parsedName.Parts);
+                parsedName.Parts,
+                sourceSpace,
+                sourceLayoutName);
+        }
+
+        private static SheetSpaceKind GetSourceSpace(
+            Document document,
+            string layoutName)
+        {
+            if (document == null)
+            {
+                return string.Equals(
+                    layoutName,
+                    "Model",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? SheetSpaceKind.Model
+                    : SheetSpaceKind.Layout;
+            }
+
+            using (Transaction transaction =
+                document.Database.TransactionManager.StartTransaction())
+            {
+                ObjectId layoutId = LayoutManager.Current.GetLayoutId(
+                    layoutName);
+                var layout = (Layout)transaction.GetObject(
+                    layoutId,
+                    OpenMode.ForRead);
+                SheetSpaceKind result = layout.ModelType
+                    ? SheetSpaceKind.Model
+                    : SheetSpaceKind.Layout;
+                transaction.Commit();
+                return result;
+            }
         }
 
         private static string GetDefaultBaseName(Document document)

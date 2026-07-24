@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 
@@ -7,14 +8,14 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class SeloAttributeReader
     {
-        private readonly ActiveLayoutPaperSpace _paperSpace;
+        private readonly SheetEntitySpace _entitySpace;
         private readonly StampAttributeResolver _attributeResolver;
 
         public SeloAttributeReader(
-            ActiveLayoutPaperSpace paperSpace,
+            SheetEntitySpace entitySpace,
             StampAttributeResolver attributeResolver)
         {
-            _paperSpace = paperSpace ?? throw new ArgumentNullException(nameof(paperSpace));
+            _entitySpace = entitySpace ?? throw new ArgumentNullException(nameof(entitySpace));
             _attributeResolver = attributeResolver ??
                 throw new ArgumentNullException(nameof(attributeResolver));
         }
@@ -26,21 +27,30 @@ namespace PluginConceito.Modules.PlotFolhas
         {
             if (!HasConfiguration(sheets, blockName, attributeTag)) return 0;
 
-            Document document = _paperSpace.GetDocument();
+            Document document = _entitySpace.GetDocument();
             int copied = 0;
 
             using (DocumentLock documentLock = document.LockDocument())
             using (Transaction transaction =
                 document.Database.TransactionManager.StartTransaction())
             {
-                BlockTableRecord paperSpace = _paperSpace.Open(transaction);
+                FolhaInfo firstSheet = sheets.FirstOrDefault(
+                    sheet => sheet != null);
+                if (firstSheet == null)
+                {
+                    return 0;
+                }
+
+                BlockTableRecord entitySpace = _entitySpace.Open(
+                    transaction,
+                    firstSheet);
 
                 foreach (FolhaInfo sheet in sheets)
                 {
                     if (!CanRead(sheet)) continue;
 
                     StampAttributeMatch match = _attributeResolver.Find(
-                        paperSpace,
+                        entitySpace,
                         transaction,
                         sheet,
                         blockName,

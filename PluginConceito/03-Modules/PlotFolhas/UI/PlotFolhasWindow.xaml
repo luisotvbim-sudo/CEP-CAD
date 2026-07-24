@@ -342,16 +342,80 @@
                                FontSize="24"
                                FontWeight="SemiBold"
                                Foreground="White" />
-                    <TextBlock Text="Revise, nomeie e gere os arquivos do layout ativo."
+                    <TextBlock Text="{Binding SourceSubtitle}"
                                Margin="0,3,0,0"
                                Foreground="#BBC0C6" />
+                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                        <TextBlock Text="ORIGEM"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="9"
+                                   Foreground="#8F969E" />
+                        <Border CornerRadius="4,0,0,4" BorderThickness="1" Padding="8,3">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
+                                    <Setter Property="BorderBrush" Value="#626972" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsModelSpace}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="MODEL" FontSize="10" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#B8BDC3" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsModelSpace}" Value="True">
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <Border CornerRadius="0,4,4,0" BorderThickness="1" Padding="8,3" Margin="-1,0,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
+                                    <Setter Property="BorderBrush" Value="#626972" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsModelSpace}" Value="False">
+                                            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="LAYOUT" FontSize="10" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#B8BDC3" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsModelSpace}" Value="False">
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock Text="{Binding SourceDetail}"
+                                   Margin="9,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="10"
+                                   Foreground="#B8BDC3" />
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content=""
                             Style="{StaticResource IconButton}"
                             Click="RefreshClick"
                             Margin="0,0,12,0"
-                            ToolTip="Atualizar folhas e informações do layout ativo" />
+                            ToolTip="Atualizar folhas e informações do Model ou Layout ativo" />
                     <Border Style="{StaticResource SummaryCard}">
                         <StackPanel>
                             <TextBlock Text="FOLHAS" FontSize="10" Foreground="#B8BDC3" />
@@ -505,7 +569,7 @@
                                         Style="{StaticResource CompactButton}"
                                         Tag="{Binding}"
                                         Click="ZoomSheetClick"
-                                        ToolTip="Aproximar esta folha no layout" />
+                                        ToolTip="{Binding DataContext.ZoomToolTip, RelativeSource={RelativeSource AncestorType=Window}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -636,10 +700,10 @@
                 <Button Grid.Column="1"
                         Content="Salvar nomenclatura"
                         Click="SaveNamesClick"
-                        Margin="10,0"
-                        MinWidth="175" />
+                         Margin="10,0"
+                         MinWidth="175" />
                 <Button Grid.Column="2"
-                        Content="Gerar arquivos"
+                        Content="{Binding GenerateButtonText}"
                         Click="PlotClick"
                         Style="{StaticResource PrimaryButton}" />
             </Grid>

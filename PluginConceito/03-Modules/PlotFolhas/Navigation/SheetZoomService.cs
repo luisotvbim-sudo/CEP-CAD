@@ -30,14 +30,26 @@ namespace PluginConceito.Modules.PlotFolhas
             {
                 LayoutManager.Current.CurrentLayout = sheet.LayoutName;
                 Editor editor = document.Editor;
-                SwitchToPaperSpace(editor);
+                SwitchToSheetSpace(editor, sheet);
                 ApplyView(editor, window);
             }
         }
 
-        private static void SwitchToPaperSpace(Editor editor)
+        private static void SwitchToSheetSpace(
+            Editor editor,
+            FolhaInfo sheet)
         {
-            try { editor.SwitchToPaperSpace(); }
+            try
+            {
+                if (sheet.IsModelSpace)
+                {
+                    editor.SwitchToModelSpace();
+                }
+                else
+                {
+                    editor.SwitchToPaperSpace();
+                }
+            }
             catch { }
         }
 

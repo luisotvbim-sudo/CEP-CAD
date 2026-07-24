@@ -15,7 +15,9 @@ namespace PluginConceito.Modules.PlotFolhas
             string defaultDevice,
             string defaultPlotStyle,
             string namingSeparator,
-            IReadOnlyList<string> namingParts)
+            IReadOnlyList<string> namingParts,
+            SheetSpaceKind sourceSpace,
+            string sourceLayoutName)
         {
             Document = document;
             Sheets = sheets;
@@ -27,6 +29,8 @@ namespace PluginConceito.Modules.PlotFolhas
             DefaultPlotStyle = defaultPlotStyle;
             NamingSeparator = namingSeparator;
             NamingParts = namingParts;
+            SourceSpace = sourceSpace;
+            SourceLayoutName = sourceLayoutName;
         }
 
         public Document Document { get; }
@@ -39,9 +43,14 @@ namespace PluginConceito.Modules.PlotFolhas
         public string DefaultPlotStyle { get; }
         public string NamingSeparator { get; }
         public IReadOnlyList<string> NamingParts { get; }
+        public SheetSpaceKind SourceSpace { get; }
+        public string SourceLayoutName { get; }
         public bool HasSheets { get { return Sheets.Count > 0; } }
 
-        public static PlotFolhasSession Empty(Document document)
+        public static PlotFolhasSession Empty(
+            Document document,
+            SheetSpaceKind sourceSpace,
+            string sourceLayoutName)
         {
             return new PlotFolhasSession(
                 document,
@@ -53,7 +62,9 @@ namespace PluginConceito.Modules.PlotFolhas
                 null,
                 null,
                 "-",
-                new List<string>());
+                new List<string>(),
+                sourceSpace,
+                sourceLayoutName);
         }
     }
 }

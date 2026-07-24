@@ -15,16 +15,16 @@ namespace PluginConceito.Modules.PlotFolhas
             if (zwcad == null) throw new ArgumentNullException(nameof(zwcad));
 
             var attributeCatalog = new BlockAttributeCatalog();
-            var paperSpace = new ActiveLayoutPaperSpace(zwcad);
+            var entitySpace = new SheetEntitySpace(zwcad);
             var attributeResolver = new StampAttributeResolver(
                 attributeCatalog,
                 new StampBlockLocator());
             _blockCatalog = new SeloBlockCatalog(zwcad, attributeCatalog);
             _attributeWriter = new SeloAttributeWriter(
-                paperSpace,
+                entitySpace,
                 attributeResolver);
             _attributeReader = new SeloAttributeReader(
-                paperSpace,
+                entitySpace,
                 attributeResolver);
         }
 

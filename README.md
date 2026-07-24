@@ -316,11 +316,11 @@ A disciplina, a etapa e a importância usam seleção exclusiva. A lista de nota
 
 ### `CNT_PLOT_FOLHAS`
 
-Objetivo: transformar folhas padronizadas de um layout em PDFs e/ou DWGs individuais, com validações antes de qualquer geração.
+Objetivo: transformar folhas padronizadas do Model ou de um Layout em PDFs e/ou DWGs individuais, com validações antes de qualquer geração.
 
 #### 1. Descoberta e validação
 
-`FolhaScanner` exige um documento ativo e uma aba de layout; o comando não roda no `Model`. Ele percorre o Paper Space e aceita somente blocos com nomes exatos:
+`FolhaScanner` exige um documento ativo e percorre somente o Model ou Layout que estava ativo ao abrir/atualizar a sessão. Ele aceita somente blocos com nomes exatos:
 
 ```text
 CEP-A4, CEP-A3, CEP-A2, CEP-A1, CEP-A0, CEP-A1E, CEP-A0E
@@ -331,7 +331,7 @@ Os limites preferenciais vêm das entidades na layer `502-CEP-FOR-06`, inclusive
 Cada folha é validada quanto a:
 
 - dimensões esperadas do formato;
-- escala 1:1;
+- escala 1:1 no Layout ou escala X/Y uniforme no Model;
 - rotação em múltiplos de 90 graus;
 - sobreposição com outras folhas;
 - presença do limite padronizado, tratada como aviso quando há fallback seguro.
@@ -340,11 +340,11 @@ As folhas são ordenadas visualmente de cima para baixo e da esquerda para a dir
 
 #### 2. Sessão e nomenclatura
 
-`PlotFolhasSessionService` carrega o nome salvo no atributo invisível `CNT_NOME_ARQUIVO` de cada bloco. Quando não existe, deriva um nome inicial do DWG. O nome é normalizado para `.pdf`, caracteres inválidos são removidos e duplicidades são bloqueadas.
+`PlotFolhasSessionService` fixa a origem como `Model` ou `Layout`, guarda o nome da aba e carrega o nome salvo no atributo invisível `CNT_NOME_ARQUIVO` de cada bloco. Quando não existe, deriva um nome inicial do DWG. O nome é normalizado para `.pdf`, caracteres inválidos são removidos e duplicidades são bloqueadas.
 
 O cabeçalho estruturado suporta até dez partes e detecta separadores existentes (`-`, `_` ou `.`). `PlotFolhasNamingService` aplica a estrutura, normaliza edições, valida todos os nomes e salva os valores nos blocos dentro de `DocumentLock` e `Transaction`.
 
-O painel **Copiar nome para selo** aceita qualquer definição de bloco nomeada que possua atributos; o bloco não precisa seguir o padrão `SELO-*`. Para cada folha, `StampBlockLocator` procura no Paper Space a referência com o nome efetivo escolhido e seleciona a que tem a maior área de interseção com os limites daquela folha. `StampAttributeResolver` centraliza essa associação e atende os dois sentidos:
+O painel **Copiar nome para selo** aceita qualquer definição de bloco nomeada que possua atributos; o bloco não precisa seguir o padrão `SELO-*`. Para cada folha, `StampBlockLocator` procura no mesmo espaço da folha a referência com o nome efetivo escolhido e seleciona a que tem a maior área de interseção com seus limites. `StampAttributeResolver` centraliza essa associação e atende os dois sentidos:
 
 - ao salvar ou gerar, o nome da folha é gravado no atributo escolhido;
 - em **Usar atributo nos nomes**, o valor do atributo da referência correspondente é carregado como nome da folha.
@@ -363,7 +363,7 @@ Os valores carregados do selo passam pela normalização `.pdf` e pelas mesmas v
 - confirmar sobrescrita;
 - informar progresso e erros.
 
-A janela fica vinculada ao documento que originou a sessão. Se o usuário ativar outro documento ou fechar o documento original, a janela é encerrada para impedir operações no desenho errado. Os eventos são sempre removidos no fechamento.
+A janela fica vinculada ao documento que originou a sessão e exibe um indicador segmentado `MODEL | LAYOUT`. O indicador é informativo; para trocar a origem, o usuário ativa outra aba e clica em **Atualizar**. Se ativar outro documento ou fechar o documento original, a janela é encerrada para impedir operações no desenho errado.
 
 #### 4. Preparação da saída
 
@@ -382,9 +382,9 @@ No modo de emissão automática, cria a próxima pasta livre no padrão `Emissã
 `PlotService` impede uma nova operação se o ZWCAD já estiver plotando e rejeita dispositivos cujo nome não contenha `PDF`. Para cada folha:
 
 1. bloqueia o documento;
-2. ativa o layout correto;
+2. ativa o Model ou Layout de origem;
 3. cria `PlotSettings` temporário, sem alterar permanentemente o layout;
-4. configura janela pelos limites da folha, milímetros, centralização e escala 1:1;
+4. configura janela pelos limites da folha, milímetros e centralização; usa 1:1 no Layout ou a escala uniforme do bloco no Model;
 5. escolhe a mídia mais próxima;
 6. aplica CTB/STB quando informado;
 7. valida `PlotInfo` e publica com `PlotEngine`;
@@ -392,7 +392,9 @@ No modo de emissão automática, cria a próxima pasta livre no padrão `Emissã
 
 #### 6. DWG individual
 
-`DwgExportService` cria, via `Database.Wblock()`, uma cópia integral do desenho ativo em memória. Alterações confirmadas no documento, mesmo ainda não salvas em disco, entram na exportação. Somente essa cópia é alterada. Na cópia:
+`DwgExportService` cria, via `Database.Wblock()`, uma cópia integral do desenho ativo em memória. Alterações confirmadas no documento, mesmo ainda não salvas em disco, entram na exportação. Somente essa cópia é alterada.
+
+Para uma folha originada em Layout, na cópia:
 
 - mantém o bloco da folha selecionada;
 - mantém entidades do layout que interceptam a folha;
@@ -413,6 +415,15 @@ No modo de emissão automática, cria a próxima pasta livre no padrão `Emissã
 - mantém a curva inteira e registra uma falha de corte quando `Curve.GetSplitCurves` não suporta uma geometria específica;
 - impede que a saída substitua o arquivo fonte;
 - salva primeiro em um arquivo temporário e só substitui a saída existente depois que a geração termina com sucesso.
+
+Para uma folha originada diretamente no Model:
+
+- mantém o bloco da folha selecionada;
+- remove outras folhas `CEP-*`;
+- mantém inteira qualquer entidade que intercepte a região da folha, inclusive linhas, blocos e Xrefs;
+- remove as entidades externas sem `TRIM`, `EXPLODE` ou recorte geométrico;
+- não consulta nem exige viewport;
+- salva o DWG com o Model ativo e centralizado na folha.
 
 O desenho aberto pelo usuário não é mutilado para produzir os DWGs individuais.
 
@@ -568,7 +579,7 @@ O objetivo não é criar a maior abstração possível; é manter cada mudança 
 - Regras de negócio que não dependem do ZWCAD devem ficar em classes simples e testáveis.
 - A API estática do ZWCAD deve ficar nas bordas. Quando possível, use `IZwcadContext` ou um adaptador especializado.
 - Dependências obrigatórias entram por construtor e são validadas imediatamente.
-- Prefira nomes que expressem intenção (`ScanActiveLayout`, `Prepare`, `SaveNames`) a comentários que tentam corrigir nomes vagos.
+- Prefira nomes que expressem intenção (`ScanActiveSpace`, `Prepare`, `SaveNames`) a comentários que tentam corrigir nomes vagos.
 - Métodos devem ter um nível de abstração coerente e fazer uma tarefa identificável.
 - Retornos antecipados são preferíveis a blocos profundamente aninhados.
 - Não duplique nomes de comando, IDs, validações ou regras de nomenclatura.

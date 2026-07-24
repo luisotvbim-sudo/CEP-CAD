@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 
@@ -8,14 +9,14 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class SeloAttributeWriter
     {
-        private readonly ActiveLayoutPaperSpace _paperSpace;
+        private readonly SheetEntitySpace _entitySpace;
         private readonly StampAttributeResolver _attributeResolver;
 
         public SeloAttributeWriter(
-            ActiveLayoutPaperSpace paperSpace,
+            SheetEntitySpace entitySpace,
             StampAttributeResolver attributeResolver)
         {
-            _paperSpace = paperSpace ?? throw new ArgumentNullException(nameof(paperSpace));
+            _entitySpace = entitySpace ?? throw new ArgumentNullException(nameof(entitySpace));
             _attributeResolver = attributeResolver ??
                 throw new ArgumentNullException(nameof(attributeResolver));
         }
@@ -27,7 +28,7 @@ namespace PluginConceito.Modules.PlotFolhas
         {
             if (!HasConfiguration(sheets, blockName, attributeTag)) return 0;
 
-            Document document = _paperSpace.GetDocument();
+            Document document = _entitySpace.GetDocument();
             int filled = FillAttributes(
                 document,
                 sheets,
@@ -50,7 +51,16 @@ namespace PluginConceito.Modules.PlotFolhas
             using (Transaction transaction =
                 document.Database.TransactionManager.StartTransaction())
             {
-                BlockTableRecord paperSpace = _paperSpace.Open(transaction);
+                FolhaInfo firstSheet = sheets.FirstOrDefault(
+                    sheet => sheet != null);
+                if (firstSheet == null)
+                {
+                    return 0;
+                }
+
+                BlockTableRecord entitySpace = _entitySpace.Open(
+                    transaction,
+                    firstSheet);
 
                 foreach (FolhaInfo sheet in sheets)
                 {
@@ -62,7 +72,7 @@ namespace PluginConceito.Modules.PlotFolhas
                     }
 
                     StampAttributeMatch match = _attributeResolver.Find(
-                        paperSpace,
+                        entitySpace,
                         transaction,
                         sheet,
                         blockName,
