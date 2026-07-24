@@ -3,11 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:ClassModifier="internal"
         Title="CNT · Plotar folhas"
-        Width="1280" Height="820" MinWidth="1040" MinHeight="680"
+        Width="1160" Height="740" MinWidth="940" MinHeight="610"
         WindowStartupLocation="CenterScreen"
         Background="#F2F3F5"
-        FontFamily="Segoe UI" FontSize="13"
+        FontFamily="Segoe UI" FontSize="12"
         TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
     <Window.Resources>
         <SolidColorBrush x:Key="AccentBrush" Color="#F47C20" />
@@ -27,20 +29,20 @@
 
         <DropShadowEffect x:Key="CardShadow"
                           Color="#18000000"
-                          BlurRadius="8"
+                          BlurRadius="6"
+                          ShadowDepth="1"
+                          Direction="270"
+                          Opacity="0.22" />
+        <DropShadowEffect x:Key="FloatingShadow"
+                          Color="#22000000"
+                          BlurRadius="9"
                           ShadowDepth="1"
                           Direction="270"
                           Opacity="0.28" />
-        <DropShadowEffect x:Key="FloatingShadow"
-                          Color="#22000000"
-                          BlurRadius="12"
-                          ShadowDepth="2"
-                          Direction="270"
-                          Opacity="0.34" />
 
         <Style TargetType="Button">
-            <Setter Property="MinHeight" Value="36" />
-            <Setter Property="Padding" Value="16,7" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="13,5" />
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -55,7 +57,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="7"
+                                CornerRadius="6"
                                 SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
@@ -88,8 +90,8 @@
             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-            <Setter Property="MinWidth" Value="170" />
-            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="MinWidth" Value="150" />
+            <Setter Property="MinHeight" Value="36" />
             <Setter Property="Effect" Value="{StaticResource CardShadow}" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -110,20 +112,20 @@
         <Style x:Key="CompactButton"
                TargetType="Button"
                BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="MinHeight" Value="30" />
-            <Setter Property="Padding" Value="11,4" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="27" />
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="FontSize" Value="11" />
         </Style>
 
         <Style x:Key="IconButton"
                TargetType="Button"
                BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Width" Value="38" />
-            <Setter Property="Height" Value="38" />
-            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinHeight" Value="32" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="14" />
             <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderBrush" Value="#5A6068" />
@@ -136,8 +138,8 @@
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="MinHeight" Value="38" />
-            <Setter Property="Padding" Value="11,7" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="9,5" />
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -151,7 +153,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="7">
+                                CornerRadius="6">
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
@@ -172,8 +174,8 @@
         </Style>
 
         <Style TargetType="ComboBox">
-            <Setter Property="MinHeight" Value="38" />
-            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="7,4" />
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -190,22 +192,22 @@
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal">
                             <Border x:Name="CheckBorder"
-                                    Width="18" Height="18"
+                                    Width="16" Height="16"
                                     Background="{StaticResource SurfaceBrush}"
                                     BorderBrush="#AEB4BA"
                                     BorderThickness="1.3"
-                                    CornerRadius="4"
+                                    CornerRadius="3"
                                     VerticalAlignment="Center">
                                 <TextBlock x:Name="CheckMark"
                                            Text="✓"
-                                           FontSize="13"
+                                           FontSize="11"
                                            FontWeight="Bold"
                                            Foreground="White"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            Visibility="Collapsed" />
                             </Border>
-                            <ContentPresenter Margin="7,0,0,0"
+                            <ContentPresenter Margin="6,0,0,0"
                                               VerticalAlignment="Center"
                                               RecognizesAccessKey="True" />
                         </StackPanel>
@@ -231,16 +233,16 @@
             <Setter Property="Background" Value="#454A51" />
             <Setter Property="BorderBrush" Value="#565C64" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="9" />
-            <Setter Property="Padding" Value="13,9" />
-            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Margin" Value="0,0,6,0" />
         </Style>
 
         <Style x:Key="SectionBorder" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Effect" Value="{StaticResource CardShadow}" />
         </Style>
 
@@ -262,13 +264,13 @@
             <Setter Property="Background" Value="#ECEEF1" />
             <Setter Property="Foreground" Value="#4C5259" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="12,11" />
+            <Setter Property="Padding" Value="9,8" />
             <Setter Property="BorderBrush" Value="#DDE1E5" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
 
         <Style TargetType="DataGridCell">
-            <Setter Property="Padding" Value="11,7" />
+            <Setter Property="Padding" Value="8,5" />
             <Setter Property="BorderBrush" Value="#ECEEF0" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -302,12 +304,12 @@
         <Style TargetType="ToolTip">
             <Setter Property="Background" Value="{StaticResource DarkSurfaceBrush}" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="Padding" Value="8,5" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
     </Window.Resources>
 
-    <Grid Margin="22">
+    <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -319,10 +321,10 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Margin="0,0,0,14"
-                Padding="20,16"
+                Margin="0,0,0,10"
+                Padding="16,12"
                 Background="{StaticResource DarkSurfaceBrush}"
-                CornerRadius="12"
+                CornerRadius="9"
                 Effect="{StaticResource FloatingShadow}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -330,28 +332,28 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Image Width="48"
-                       Height="48"
+                <Image Width="40"
+                       Height="40"
                        Source="/PluginConceito;component/03-Modules/PlotFolhas/Resources/Logo_Versao_Reduzida.png"
                        Stretch="Uniform"
                        VerticalAlignment="Center"
                        RenderOptions.BitmapScalingMode="HighQuality"
                        ToolTip="CNT" />
-                <StackPanel Grid.Column="1" Margin="14,0,20,0" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Margin="11,0,16,0" VerticalAlignment="Center">
                     <TextBlock Text="Plotar folhas"
-                               FontSize="24"
+                               FontSize="20"
                                FontWeight="SemiBold"
                                Foreground="White" />
                     <TextBlock Text="{Binding SourceSubtitle}"
-                               Margin="0,3,0,0"
+                               Margin="0,2,0,0"
                                Foreground="#BBC0C6" />
-                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                         <TextBlock Text="ORIGEM"
-                                   Margin="0,0,8,0"
+                                   Margin="0,0,6,0"
                                    VerticalAlignment="Center"
                                    FontSize="9"
                                    Foreground="#8F969E" />
-                        <Border CornerRadius="4,0,0,4" BorderThickness="1" Padding="8,3">
+                        <Border CornerRadius="3,0,0,3" BorderThickness="1" Padding="6,2">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
@@ -377,7 +379,7 @@
                                 </TextBlock.Style>
                             </TextBlock>
                         </Border>
-                        <Border CornerRadius="0,4,4,0" BorderThickness="1" Padding="8,3" Margin="-1,0,0,0">
+                        <Border CornerRadius="0,3,3,0" BorderThickness="1" Padding="6,2" Margin="-1,0,0,0">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="{StaticResource DarkSurfaceAltBrush}" />
@@ -404,7 +406,7 @@
                             </TextBlock>
                         </Border>
                         <TextBlock Text="{Binding SourceDetail}"
-                                   Margin="9,0,0,0"
+                                   Margin="7,0,0,0"
                                    VerticalAlignment="Center"
                                    FontSize="10"
                                    Foreground="#B8BDC3" />
@@ -414,45 +416,45 @@
                     <Button Content=""
                             Style="{StaticResource IconButton}"
                             Click="RefreshClick"
-                            Margin="0,0,12,0"
+                            Margin="0,0,9,0"
                             ToolTip="Atualizar folhas e informações do Model ou Layout ativo" />
                     <Border Style="{StaticResource SummaryCard}">
                         <StackPanel>
                             <TextBlock Text="FOLHAS" FontSize="10" Foreground="#B8BDC3" />
-                            <TextBlock Text="{Binding SheetCollection.TotalCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="{Binding SheetCollection.TotalCount}" FontSize="15" FontWeight="SemiBold" Foreground="White" />
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SummaryCard}">
                         <StackPanel>
                             <TextBlock Text="PDF" FontSize="10" Foreground="#B8BDC3" />
-                            <TextBlock Text="{Binding SheetCollection.PdfCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="{Binding SheetCollection.PdfCount}" FontSize="15" FontWeight="SemiBold" Foreground="White" />
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SummaryCard}">
                         <StackPanel>
                             <TextBlock Text="DWG" FontSize="10" Foreground="#B8BDC3" />
-                            <TextBlock Text="{Binding SheetCollection.DwgCount}" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="{Binding SheetCollection.DwgCount}" FontSize="15" FontWeight="SemiBold" Foreground="White" />
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SummaryCard}" Margin="0">
                         <StackPanel>
                             <TextBlock Text="ALERTAS" FontSize="10" Foreground="#B8BDC3" />
-                            <TextBlock Text="{Binding SheetCollection.IssueCount}" FontSize="18" FontWeight="SemiBold" Foreground="#FFAA65" />
+                            <TextBlock Text="{Binding SheetCollection.IssueCount}" FontSize="15" FontWeight="SemiBold" Foreground="#FFAA65" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource SectionBorder}" Margin="0,0,0,12">
-            <Expander Header="Estrutura de nomenclatura" Padding="16,12" IsExpanded="False">
-                <Grid Margin="0,12,0,4">
+        <Border Grid.Row="1" Style="{StaticResource SectionBorder}" Margin="0,0,0,9">
+            <Expander Header="Estrutura de nomenclatura" Padding="12,9" IsExpanded="False">
+                <Grid Margin="0,9,0,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="Monte um padrão e aplique a todas as folhas. O nome individual continua editável na tabela." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8" />
+                        <TextBlock Text="Monte um padrão e aplique a todas as folhas. O nome individual continua editável na tabela." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6" />
                         <StackPanel Orientation="Horizontal">
                             <ItemsControl ItemsSource="{Binding NamingStructure.Parts}">
                                 <ItemsControl.ItemsPanel>
@@ -462,21 +464,37 @@
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
                                             <StackPanel>
-                                                <TextBox Width="72" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
-                                                <CheckBox IsChecked="{Binding IsSequential}" HorizontalAlignment="Center" FontSize="10" Margin="0,4,0,0" ToolTip="Numeração sequencial">Seq</CheckBox>
+                                                <TextBox Width="62" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
+                                                <CheckBox IsChecked="{Binding IsSequential}" HorizontalAlignment="Center" FontSize="9" Margin="0,3,0,0" ToolTip="Numeração sequencial">Seq</CheckBox>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding DataContext.NamingStructure.Separator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="5,7,5,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#F08F38" />
+                                            <TextBlock Text="{Binding DataContext.NamingStructure.Separator, RelativeSource={RelativeSource AncestorType=Window}}" Margin="4,6,4,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#F08F38" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="Separador" Margin="8,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
-                            <TextBox Width="38" MaxLength="1" TextAlignment="Center" Text="{Binding NamingStructure.Separator, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Separador" Margin="6,0,5,0" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
+                            <TextBox x:Name="SeparatorTextBox"
+                                     Width="42"
+                                     Height="32"
+                                     Padding="4,2"
+                                     MaxLength="1"
+                                     TextAlignment="Center"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="14"
+                                     FontWeight="SemiBold"
+                                     Foreground="{StaticResource AccentDarkBrush}"
+                                     Background="{StaticResource AccentSoftBrush}"
+                                     BorderBrush="{StaticResource AccentBrush}"
+                                     CaretBrush="{StaticResource AccentDarkBrush}"
+                                     Text="{Binding NamingStructure.Separator, UpdateSourceTrigger=PropertyChanged}"
+                                     GotKeyboardFocus="SelectAllTextBoxContent"
+                                     PreviewMouseLeftButtonDown="SelectAllTextBoxOnFirstClick"
+                                     ToolTip="Digite um caractere para separar as partes do nome." />
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
-                        <Button Content="− campo" Style="{StaticResource CompactButton}" Click="RemoveNamingPartClick" Margin="0,0,6,0" />
-                        <Button Content="+ campo" Style="{StaticResource CompactButton}" Click="AddNamingPartClick" Margin="0,0,10,0" />
+                        <Button Content="− campo" Style="{StaticResource CompactButton}" Click="RemoveNamingPartClick" Margin="0,0,5,0" />
+                        <Button Content="+ campo" Style="{StaticResource CompactButton}" Click="AddNamingPartClick" Margin="0,0,8,0" />
                         <Button Content="Aplicar a todas" Style="{StaticResource TonalButton}" Click="ApplyStructuredNameClick" />
                     </StackPanel>
                 </Grid>
@@ -485,11 +503,11 @@
 
         <Border Grid.Row="2"
                 Style="{StaticResource SectionBorder}"
-                Margin="0,0,0,12"
-                Padding="10">
+                Margin="0,0,0,9"
+                Padding="8">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="330" />
+                    <ColumnDefinition Width="290" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -497,18 +515,18 @@
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32" />
+                        <ColumnDefinition Width="28" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text=""
                                FontFamily="Segoe MDL2 Assets"
-                               FontSize="15"
+                               FontSize="14"
                                Foreground="{StaticResource MutedBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Panel.ZIndex="2" />
                     <TextBox Grid.ColumnSpan="2"
-                             Padding="38,7,11,7"
+                              Padding="33,5,9,5"
                              Text="{Binding SheetCollection.SearchText, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Pesquisar por número, formato, nome ou status" />
                 </Grid>
@@ -516,20 +534,20 @@
                           Content="Somente alertas"
                           IsChecked="{Binding SheetCollection.ShowOnlyIssues}"
                           VerticalAlignment="Center"
-                          Margin="14,0,18,0" />
+                           Margin="11,0,14,0" />
                 <Border Grid.Column="2"
                         Background="{StaticResource SurfaceAltBrush}"
-                        CornerRadius="12"
-                        Padding="10,5"
+                        CornerRadius="10"
+                        Padding="8,4"
                         VerticalAlignment="Center">
                     <TextBlock Foreground="{StaticResource MutedBrush}">
                         <Run Text="Exibindo "/><Run Text="{Binding SheetCollection.VisibleCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" folha(s)"/>
                     </TextBlock>
                 </Border>
                 <StackPanel Grid.Column="4" Orientation="Horizontal">
-                    <Button Content="PDF: todas" Style="{StaticResource CompactButton}" Click="SelectAllPdfClick" Margin="0,0,6,0" />
-                    <Button Content="PDF: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllPdfClick" Margin="0,0,12,0" />
-                    <Button Content="DWG: todas" Style="{StaticResource CompactButton}" Click="SelectAllDwgClick" Margin="0,0,6,0" />
+                    <Button Content="PDF: todas" Style="{StaticResource CompactButton}" Click="SelectAllPdfClick" Margin="0,0,5,0" />
+                    <Button Content="PDF: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllPdfClick" Margin="0,0,9,0" />
+                    <Button Content="DWG: todas" Style="{StaticResource CompactButton}" Click="SelectAllDwgClick" Margin="0,0,5,0" />
                     <Button Content="DWG: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllDwgClick" />
                 </StackPanel>
             </Grid>
@@ -543,17 +561,17 @@
                       CanUserAddRows="False" CanUserDeleteRows="False"
                       CanUserReorderColumns="True" CanUserSortColumns="True"
                       HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      RowHeight="44" AlternatingRowBackground="#FBFBFC"
+                      RowHeight="37" AlternatingRowBackground="#FBFBFC"
                       SelectionMode="Single" SelectionUnit="FullRow"
                       BorderThickness="0"
                       CellEditEnding="OnCellEditEnding">
                 <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Header="PDF" Binding="{Binding Plotar, UpdateSourceTrigger=PropertyChanged}" Width="58" />
-                    <DataGridCheckBoxColumn Header="DWG" Binding="{Binding GerarDwg, UpdateSourceTrigger=PropertyChanged}" Width="62" />
-                    <DataGridTextColumn Header="#" Binding="{Binding Sequencia}" IsReadOnly="True" Width="52" />
-                    <DataGridTextColumn Header="Formato" Binding="{Binding Formato}" IsReadOnly="True" Width="85" />
-                    <DataGridTextColumn Header="Nome do arquivo" Binding="{Binding NomeArquivo, UpdateSourceTrigger=LostFocus}" Width="*" MinWidth="280" />
-                    <DataGridTemplateColumn Header="Situação" Width="250">
+                    <DataGridCheckBoxColumn Header="PDF" Binding="{Binding Plotar, UpdateSourceTrigger=PropertyChanged}" Width="50" />
+                    <DataGridCheckBoxColumn Header="DWG" Binding="{Binding GerarDwg, UpdateSourceTrigger=PropertyChanged}" Width="54" />
+                    <DataGridTextColumn Header="#" Binding="{Binding Sequencia}" IsReadOnly="True" Width="44" />
+                    <DataGridTextColumn Header="Formato" Binding="{Binding Formato}" IsReadOnly="True" Width="72" />
+                    <DataGridTextColumn Header="Nome do arquivo" Binding="{Binding NomeArquivo, UpdateSourceTrigger=LostFocus}" Width="*" MinWidth="240" />
+                    <DataGridTemplateColumn Header="Situação" Width="215">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -562,7 +580,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="" Width="76" CanUserSort="False">
+                    <DataGridTemplateColumn Header="" Width="66" CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="Zoom"
@@ -577,28 +595,28 @@
             </DataGrid>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource SectionBorder}" Margin="0,12,0,12" Padding="16,14">
+        <Border Grid.Row="4" Style="{StaticResource SectionBorder}" Margin="0,9,0,9" Padding="12,10">
             <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                    <Border Width="30" Height="30" Background="{StaticResource AccentSoftBrush}" CornerRadius="7">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,9">
+                    <Border Width="26" Height="26" Background="{StaticResource AccentSoftBrush}" CornerRadius="6">
                         <TextBlock Text=""
                                    FontFamily="Segoe MDL2 Assets"
                                    Foreground="{StaticResource AccentDarkBrush}"
-                                   FontSize="14"
+                                   FontSize="13"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Border>
-                    <StackPanel Margin="10,0,0,0">
-                        <TextBlock Text="Configuração de saída" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="Defina destino, plotter e padrão de impressão." FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                    <StackPanel Margin="8,0,0,0">
+                        <TextBlock Text="Configuração de saída" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="Defina destino, plotter e padrão de impressão." FontSize="10" Foreground="{StaticResource MutedBrush}" />
                     </StackPanel>
                 </StackPanel>
                 <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="74" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="85" />
+                    <ColumnDefinition Width="72" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -609,24 +627,24 @@
                 <TextBox Grid.Column="1"
                          Text="{Binding Output.OutputFolder, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Se esta pasta não for alterada, será criada automaticamente uma subpasta Emissão NN." />
-                <Button Grid.Column="2" Content="Escolher…" Style="{StaticResource TonalButton}" Click="BrowseFolderClick" Margin="7,0,18,0" />
+                <Button Grid.Column="2" Content="Escolher…" Style="{StaticResource TonalButton}" Click="BrowseFolderClick" Margin="6,0,14,0" />
                 <TextBlock Grid.Column="3" Text="CTB / STB" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
                 <ComboBox Grid.Column="4" ItemsSource="{Binding Output.PlotStyles}" SelectedItem="{Binding Output.CtbName}" />
 
-                <TextBlock Grid.Row="1" Text="Plotter" VerticalAlignment="Center" Margin="0,9,0,0" Foreground="{StaticResource MutedBrush}" />
-                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Output.Devices}" SelectedItem="{Binding Output.DeviceName}" Margin="0,9,0,0" />
-                <CheckBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Sobrescrever arquivos existentes" IsChecked="{Binding Output.OverwriteExisting}" VerticalAlignment="Center" Margin="0,9,0,0" />
+                <TextBlock Grid.Row="1" Text="Plotter" VerticalAlignment="Center" Margin="0,7,0,0" Foreground="{StaticResource MutedBrush}" />
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Output.Devices}" SelectedItem="{Binding Output.DeviceName}" Margin="0,7,0,0" />
+                <CheckBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Sobrescrever arquivos existentes" IsChecked="{Binding Output.OverwriteExisting}" VerticalAlignment="Center" Margin="0,7,0,0" />
                 </Grid>
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="5" Style="{StaticResource SectionBorder}" Margin="0,0,0,12">
-            <Expander Header="Copiar nome para selo" Padding="16,12" IsExpanded="False">
-                <Grid Margin="0,12,0,4">
+        <Border Grid.Row="5" Style="{StaticResource SectionBorder}" Margin="0,0,0,9">
+            <Expander Header="Copiar nome para selo" Padding="12,9" IsExpanded="False">
+                <Grid Margin="0,9,0,2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="84" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="85" />
+                        <ColumnDefinition Width="72" />
                         <ColumnDefinition Width="1.5*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -641,7 +659,7 @@
                               IsEditable="True"
                               IsTextSearchEnabled="True"
                               ToolTip="Escolha o bloco de selo que contém o atributo a preencher." />
-                    <TextBlock Grid.Column="2" Text="Atributo" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Grid.Column="2" Text="Atributo" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{StaticResource MutedBrush}" />
                     <ComboBox Grid.Column="3"
                               x:Name="StampAttributeCombo"
                               ItemsSource="{Binding StampSelection.Attributes}"
@@ -649,14 +667,14 @@
                               ToolTip="Escolha qual atributo do selo receberá o nome de cada folha." />
                     <TextBlock Grid.Row="1" Grid.ColumnSpan="3"
                                Text="Ao salvar ou gerar, o nome vai para o atributo selecionado."
-                               Margin="0,10,12,0"
+                               Margin="0,8,10,0"
                                VerticalAlignment="Center"
                                Foreground="{StaticResource MutedBrush}" />
                     <Button Grid.Row="1" Grid.Column="3"
                             Content="Usar atributo nos nomes"
                             Style="{StaticResource TonalButton}"
                             Click="LoadNamesFromStampClick"
-                            Margin="0,10,0,0"
+                            Margin="0,8,0,0"
                             HorizontalAlignment="Right"
                             ToolTip="Lê esse atributo do bloco correspondente dentro de cada folha e usa seu valor como nome do arquivo." />
                 </Grid>
@@ -667,8 +685,8 @@
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="1"
-                CornerRadius="10"
-                Padding="14,11"
+                CornerRadius="8"
+                Padding="11,8"
                 Effect="{StaticResource CardShadow}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -677,11 +695,11 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="9" Height="9"
+                    <Border Width="7" Height="7"
                             Background="{StaticResource AccentBrush}"
-                            CornerRadius="5"
-                            Margin="0,0,10,0" />
-                    <ProgressBar Width="72" Height="4" IsIndeterminate="True" Margin="0,0,10,0">
+                            CornerRadius="4"
+                            Margin="0,0,8,0" />
+                    <ProgressBar Width="62" Height="4" IsIndeterminate="True" Margin="0,0,8,0">
                         <ProgressBar.Style>
                             <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -700,8 +718,8 @@
                 <Button Grid.Column="1"
                         Content="Salvar nomenclatura"
                         Click="SaveNamesClick"
-                         Margin="10,0"
-                         MinWidth="175" />
+                         Margin="8,0"
+                         MinWidth="150" />
                 <Button Grid.Column="2"
                         Content="{Binding GenerateButtonText}"
                         Click="PlotClick"
@@ -719,30 +737,30 @@
             <Border Background="{StaticResource SurfaceBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="14"
-                    Padding="30,24"
+                    CornerRadius="11"
+                    Padding="24,19"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Effect="{StaticResource FloatingShadow}">
-                <StackPanel Width="360">
-                    <Border Width="48" Height="48"
+                <StackPanel Width="310">
+                    <Border Width="40" Height="40"
                             Background="{StaticResource AccentSoftBrush}"
-                            CornerRadius="12"
+                            CornerRadius="9"
                             HorizontalAlignment="Center">
                         <TextBlock Text=""
                                    FontFamily="Segoe MDL2 Assets"
                                    Foreground="{StaticResource AccentBrush}"
-                                   FontSize="20"
+                                   FontSize="17"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="Processando arquivos"
-                               FontSize="17"
+                               FontSize="15"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource TextBrush}"
                                HorizontalAlignment="Center"
-                               Margin="0,13,0,0" />
-                    <ProgressBar Height="6" IsIndeterminate="True" Margin="0,16,0,12" />
+                               Margin="0,10,0,0" />
+                    <ProgressBar Height="5" IsIndeterminate="True" Margin="0,13,0,9" />
                     <TextBlock Text="{Binding StatusMessage}"
                                Foreground="{StaticResource MutedBrush}"
                                TextAlignment="Center"
