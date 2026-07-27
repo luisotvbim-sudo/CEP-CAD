@@ -183,6 +183,28 @@ namespace PluginConceito.Modules.PlotFolhas
             Raise(LoadNamesFromStampRequested);
         }
 
+        private void SelectAllTextBoxContent(
+            object sender,
+            KeyboardFocusChangedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            textBox?.SelectAll();
+        }
+
+        private void SelectAllTextBoxOnFirstClick(
+            object sender,
+            MouseButtonEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            if (textBox == null || textBox.IsKeyboardFocusWithin)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            textBox.Focus();
+        }
+
         private void RefreshClick(object sender, RoutedEventArgs e)
         {
             Raise(RefreshRequested);

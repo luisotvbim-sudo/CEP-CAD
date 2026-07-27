@@ -68,8 +68,20 @@ namespace PluginConceito.Modules.PlotFolhas
             catch (Exception exception)
             {
                 _context.Telemetry.TrackException(telemetryOperation, exception);
-                ZwcadApplication.ShowAlertDialog(errorPrefix + exception.Message);
+                ZwcadApplication.ShowAlertDialog(
+                    errorPrefix + GetInnermostMessage(exception));
             }
+        }
+
+        private static string GetInnermostMessage(Exception exception)
+        {
+            Exception current = exception;
+            while (current.InnerException != null)
+            {
+                current = current.InnerException;
+            }
+
+            return current.Message;
         }
 
         private void ShowWindow(PlotFolhasSession session)
