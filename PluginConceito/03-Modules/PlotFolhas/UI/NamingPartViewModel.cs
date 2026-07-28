@@ -7,6 +7,7 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         private string _value;
         private bool _isSequential;
+        private bool _isRevision;
 
         public NamingPartViewModel(string value)
         {
@@ -29,7 +30,34 @@ namespace PluginConceito.Modules.PlotFolhas
             get { return _isSequential; }
             set
             {
-                SetProperty(ref _isSequential, value);
+                if (!SetProperty(ref _isSequential, value))
+                {
+                    return;
+                }
+
+                if (value && _isRevision)
+                {
+                    _isRevision = false;
+                    OnPropertyChanged(nameof(IsRevision));
+                }
+            }
+        }
+
+        public bool IsRevision
+        {
+            get { return _isRevision; }
+            set
+            {
+                if (!SetProperty(ref _isRevision, value))
+                {
+                    return;
+                }
+
+                if (value && _isSequential)
+                {
+                    _isSequential = false;
+                    OnPropertyChanged(nameof(IsSequential));
+                }
             }
         }
     }

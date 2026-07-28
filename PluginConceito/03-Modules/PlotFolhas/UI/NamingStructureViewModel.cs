@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using PluginConceito.Application.Presentation;
 
@@ -34,14 +35,14 @@ namespace PluginConceito.Modules.PlotFolhas
             }
         }
 
-        public IReadOnlyList<string> GetValues()
+        public NamingStructureDefinition CreateDefinition()
         {
-            return Parts.Select(part => part.Value ?? string.Empty).ToList();
-        }
-
-        public IReadOnlyList<bool> GetSequentialFlags()
-        {
-            return Parts.Select(part => part.IsSequential).ToList();
+            return new NamingStructureDefinition(
+                Separator,
+                Parts.Select(part => new NamingFieldDefinition(
+                    part.Value,
+                    part.IsSequential,
+                    part.IsRevision)));
         }
 
         public string TryAddPart()
@@ -52,7 +53,7 @@ namespace PluginConceito.Modules.PlotFolhas
                     MaximumParts + " campos.";
             }
 
-            Parts.Add(new NamingPartViewModel(string.Empty));
+            AddPart(new NamingPartViewModel(string.Empty));
             return null;
         }
 
@@ -63,6 +64,8 @@ namespace PluginConceito.Modules.PlotFolhas
                 return "A estrutura deve ter pelo menos " + MinimumParts + " campos.";
             }
 
+            NamingPartViewModel removed = Parts[Parts.Count - 1];
+            removed.PropertyChanged -= OnPartPropertyChanged;
             Parts.RemoveAt(Parts.Count - 1);
             return null;
         }
@@ -77,7 +80,37 @@ namespace PluginConceito.Modules.PlotFolhas
             for (int index = 0; index < count; index++)
             {
                 string value = index < values.Count ? values[index] : string.Empty;
-                Parts.Add(new NamingPartViewModel(value));
+                AddPart(new NamingPartViewModel(value));
+            }
+        }
+
+        private void AddPart(NamingPartViewModel part)
+        {
+            part.PropertyChanged += OnPartPropertyChanged;
+            Parts.Add(part);
+        }
+
+        private void OnPartPropertyChanged(
+            object sender,
+            PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(NamingPartViewModel.IsRevision))
+            {
+                return;
+            }
+
+            var selectedPart = sender as NamingPartViewModel;
+            if (selectedPart == null || !selectedPart.IsRevision)
+            {
+                return;
+            }
+
+            foreach (NamingPartViewModel part in Parts)
+            {
+                if (!ReferenceEquals(part, selectedPart))
+                {
+                    part.IsRevision = false;
+                }
             }
         }
     }
