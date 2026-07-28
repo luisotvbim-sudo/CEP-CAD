@@ -71,6 +71,10 @@ Ele está disponível na Ribbon em **CNT > Plotagem > Plotar folhas**.
 - A exportação cria uma cópia do desenho ativo em memória; alterações confirmadas ainda não salvas também entram no DWG individual.
 - O DWG de saída recebe o mesmo nome da folha, trocando `.pdf` por `.dwg`.
 - Para folhas de Layout, a exportação mantém no Layout apenas o conteúdo da folha e suas viewports. No Model, usa a união das regiões vistas por essas viewports e conserva somente o conteúdo visível.
+- Quando a folha de Layout não possui viewport de Model ativa, o DWG é gerado com o Model vazio; esse é um resultado válido.
+- A viewport geral é identificada no desenho matriz antes do `Wblock()` e reencontrada na cópia por `Handle`, `Number == 1` ou, quando o ZWCAD regenera esses identificadores, por uma assinatura geométrica única.
+- Depois do `Wblock()`, os limites e o `INSBASE` do Model são comparados com o desenho matriz. Se o ZWCAD tiver aplicado uma translação uniforme, o clone é normalizado antes do isolamento; alterações não uniformes cancelam a exportação.
+- Se a viewport geral não puder ser mapeada ou uma viewport ativa tiver transformação inválida, a exportação da folha é cancelada antes de alterar o Model.
 - Para folhas encontradas diretamente no Model, a exportação não usa viewports: mantém o bloco da folha selecionada e qualquer entidade que intercepte seus limites. Linhas, blocos, Xrefs e demais entidades são preservados inteiros, sem `TRIM`, `EXPLODE` ou recorte geométrico.
 - A visibilidade também respeita `Entity.Visible`, layer globalmente desligada/congelada e layers congeladas por viewport. Uma entidade só usa a região de uma viewport quando sua layer está visível nela.
 - Antes de apagar ou recortar, a cópia em memória registra `IsOff`, `IsFrozen` e `IsLocked` de todas as layers, destrava/descongela temporariamente e restaura exatamente os estados originais antes do `Commit`. A visibilidade é sempre decidida pelo estado registrado, não pelo estado temporário de edição.

@@ -22,10 +22,17 @@ namespace PluginConceito.Modules.PlotFolhas
             _openingViewService = new DwgOpeningViewService();
         }
 
-        public DwgLayoutIsolationResult Isolate(Database database, FolhaInfo sheet)
+        public DwgLayoutIsolationResult Isolate(
+            Database database,
+            FolhaInfo sheet,
+            ObjectId baseViewportId)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (sheet == null) throw new ArgumentNullException(nameof(sheet));
+            if (baseViewportId.IsNull)
+                throw new ArgumentException(
+                    "Viewport geral obrigatoria.",
+                    nameof(baseViewportId));
 
             using (Transaction transaction = database.TransactionManager.StartTransaction())
             using (var sheetRegion = new SheetRegion(sheet.Limites))
@@ -45,7 +52,8 @@ namespace PluginConceito.Modules.PlotFolhas
                 PaperSpaceViewportSelection viewports = _viewportSelector.Select(
                     entityIds,
                     transaction,
-                    sheetRegion);
+                    sheetRegion,
+                    baseViewportId);
 
                 using (var layerEditScope = new DatabaseLayerEditScope(
                     database,
@@ -64,9 +72,12 @@ namespace PluginConceito.Modules.PlotFolhas
             }
         }
 
-        public void PrepareOpeningView(Database database, FolhaInfo sheet)
+        public void PrepareOpeningView(
+            Database database,
+            FolhaInfo sheet,
+            ObjectId baseViewportId)
         {
-            _openingViewService.Prepare(database, sheet);
+            _openingViewService.Prepare(database, sheet, baseViewportId);
         }
 
         private DwgLayoutIsolationResult EraseUnrelatedEntities(

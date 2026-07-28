@@ -388,11 +388,13 @@ string TryOpenOutputFolder(folder)
 
 Fluxo por folha originada em Layout:
 
-1. `DwgDatabaseCloner` cria um banco independente com `Wblock()`;
-2. `DwgLayoutIsolator` mantém a folha, entidades pertencentes a ela e suas viewports;
-3. `ViewportModelIsolator` calcula um plano antes de apagar qualquer entidade do Model;
-4. `DwgOpeningViewService` deixa o Layout ativo e centralizado na folha;
-5. `DwgOutputFile` salva em temporário, publica no destino e verifica o resultado.
+1. `DwgDatabaseCloner` identifica a viewport geral no desenho matriz e cria um banco independente com `Wblock()`;
+2. `WblockModelCoordinateNormalizer` compara limites e `INSBASE`, desfaz uma eventual translação uniforme do Model e valida o clone;
+3. a viewport geral é remapeada por `Handle`, `Number == 1` ou assinatura geométrica única;
+4. `DwgLayoutIsolator` mantém a folha, entidades pertencentes a ela e suas viewports;
+5. `ViewportModelIsolator` calcula um plano antes de apagar qualquer entidade do Model;
+6. `DwgOpeningViewService` deixa o Layout ativo e centralizado na folha;
+7. `DwgOutputFile` salva em temporário, publica no destino e verifica o resultado.
 
 Fluxo por folha originada no Model:
 
@@ -404,11 +406,12 @@ Fluxo por folha originada no Model:
 
 Política do Model projetado por viewports de uma folha de Layout:
 
-- nenhuma viewport de Model na folha: apagar todo o Model;
+- nenhuma viewport de Model ativa na folha: apagar todo o Model; esse é um resultado válido;
 - uma ou mais viewports válidas: manter entidades cujos limites intersectem as regiões projetadas;
-- viewports válidas, mas nenhuma entidade encontrada: preservar o Model integralmente por segurança;
-- entidade sem `GeometricExtents`: preservar a entidade;
-- viewport em perspectiva ou transformação inválida: cancelar antes de alterar o Model clonado.
+- viewports válidas, mas nenhuma entidade encontrada: o Model pode ficar vazio;
+- entidade sem `GeometricExtents`: considerar sem interseção e apagar;
+- viewport em perspectiva: ignorar;
+- transformação inválida em uma viewport considerada, como `CustomScale` igual a zero: cancelar antes de alterar o Model clonado.
 
 ## 8. Checklist para agentes
 

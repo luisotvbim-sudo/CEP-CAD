@@ -19,7 +19,6 @@ namespace PluginConceito.Modules.PlotFolhas
             Transaction transaction,
             IReadOnlyList<ViewportModelRegion> regions,
             ModelIsolationResult result,
-            Action<string> report,
             DatabaseLayerEditScope layerStates)
         {
             List<ObjectId> entityIds = modelSpace.Cast<ObjectId>().ToList();
@@ -37,7 +36,6 @@ namespace PluginConceito.Modules.PlotFolhas
                     transaction,
                     regions,
                     result,
-                    report,
                     layerStates);
             }
         }
@@ -48,7 +46,6 @@ namespace PluginConceito.Modules.PlotFolhas
             Transaction transaction,
             IReadOnlyList<ViewportModelRegion> regions,
             ModelIsolationResult result,
-            Action<string> report,
             DatabaseLayerEditScope layerStates)
         {
             if (!ModelEntityVisibility.IsGloballyVisible(entity, layerStates))
@@ -89,8 +86,7 @@ namespace PluginConceito.Modules.PlotFolhas
                     modelSpace,
                     transaction,
                     visibleRegions,
-                    result,
-                    report);
+                    result);
                 return;
             }
 
