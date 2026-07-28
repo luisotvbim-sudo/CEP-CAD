@@ -47,6 +47,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public event EventHandler ApplyStructuredNameRequested;
         public event EventHandler FileNameEdited;
+        public event EventHandler RevisionChangeRequested;
         public event EventHandler ZoomRequested;
         public event EventHandler SaveNamesRequested;
         public event EventHandler PlotRequested;
@@ -54,9 +55,10 @@ namespace PluginConceito.Modules.PlotFolhas
         public event EventHandler LoadNamesFromStampRequested;
         public event EventHandler RefreshRequested;
 
-        public string NamingSeparator { get { return _viewModel.NamingStructure.Separator; } }
-        public IReadOnlyList<string> NamingParts { get { return _viewModel.NamingStructure.GetValues(); } }
-        public IReadOnlyList<bool> NamingPartSequential { get { return _viewModel.NamingStructure.GetSequentialFlags(); } }
+        public NamingStructureDefinition NamingStructure
+        {
+            get { return _viewModel.NamingStructure.CreateDefinition(); }
+        }
         public string OutputFolder { get { return _viewModel.Output.OutputFolder; } }
         public bool UseAutomaticEmissionFolder { get { return _viewModel.Output.UseAutomaticEmissionFolder; } }
         public string AutomaticEmissionBaseFolder { get { return _viewModel.Output.AutomaticEmissionBaseFolder; } }
@@ -79,7 +81,6 @@ namespace PluginConceito.Modules.PlotFolhas
         public void RefreshSheets()
         {
             _viewModel.SheetCollection.Refresh();
-            SheetsGrid.Items.Refresh();
         }
 
         public void SetBusy(bool busy)
@@ -136,11 +137,6 @@ namespace PluginConceito.Modules.PlotFolhas
             _viewModel.RemoveNamingPart();
         }
 
-        private void SelectAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(true); }
-        private void ClearAllPdfClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllPdf(false); }
-        private void SelectAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(true); }
-        private void ClearAllDwgClick(object sender, RoutedEventArgs e) { _viewModel.SheetCollection.SetAllDwg(false); }
-
         private void ZoomSheetClick(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
@@ -181,6 +177,32 @@ namespace PluginConceito.Modules.PlotFolhas
         private void LoadNamesFromStampClick(object sender, RoutedEventArgs e)
         {
             Raise(LoadNamesFromStampRequested);
+        }
+
+        private void RevisionSheetClick(object sender, RoutedEventArgs e)
+        {
+            var checkBox = sender as CheckBox;
+            var sheet = checkBox?.Tag as FolhaInfo;
+            if (sheet == null)
+            {
+                return;
+            }
+
+            bool requestedValue = checkBox.IsChecked == true;
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.Background,
+                new Action(() =>
+                {
+                    if (!IsLoaded)
+                    {
+                        return;
+                    }
+
+                    sheet.SubirRevisao = requestedValue;
+                    EditedSheet = sheet;
+                    _viewModel.SelectedSheet = sheet;
+                    Raise(RevisionChangeRequested);
+                }));
         }
 
         private void SelectAllTextBoxContent(

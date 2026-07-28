@@ -24,24 +24,28 @@ namespace PluginConceito.Modules.PlotFolhas
 
         public void ApplyStructure(
             IReadOnlyList<FolhaInfo> sheets,
-            string separator,
-            IEnumerable<string> parts,
-            IEnumerable<bool> sequentialFlags)
+            NamingStructureDefinition structure)
         {
-            List<string> baseParts = (parts ?? Enumerable.Empty<string>()).ToList();
-            List<bool> flags = (sequentialFlags ?? Enumerable.Empty<bool>()).ToList();
+            if (structure == null)
+            {
+                throw new ArgumentNullException(nameof(structure));
+            }
 
             for (int sheetIndex = 0; sheetIndex < sheets.Count; sheetIndex++)
             {
+                sheets[sheetIndex].ResetRevision(false);
                 List<string> sheetParts = new List<string>();
-                for (int partIndex = 0; partIndex < baseParts.Count; partIndex++)
+                foreach (NamingFieldDefinition field in structure.Fields)
                 {
-                    string part = baseParts[partIndex];
-                    bool isSequential = partIndex < flags.Count && flags[partIndex];
-                    sheetParts.Add(isSequential ? GetSequentialValue(part, sheetIndex) : part);
+                    sheetParts.Add(field.IsSequential
+                        ? GetSequentialValue(field.Value, sheetIndex)
+                        : field.Value);
                 }
 
-                sheets[sheetIndex].NomeArquivo = _nameService.BuildStructuredName(separator, sheetParts);
+                sheets[sheetIndex].NomeArquivo =
+                    _nameService.BuildStructuredName(
+                        structure.Separator,
+                        sheetParts);
             }
 
             _nameService.ValidateNames(sheets);

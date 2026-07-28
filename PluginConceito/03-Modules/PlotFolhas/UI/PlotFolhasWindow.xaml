@@ -171,7 +171,19 @@
                                         <StackPanel Orientation="Horizontal">
                                             <StackPanel>
                                                 <TextBox Width="58" MaxLength="6" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="Campo do nome" />
-                                                <CheckBox IsChecked="{Binding IsSequential}" HorizontalAlignment="Center" FontSize="9" Margin="0,3,0,0" ToolTip="Numeração sequencial">Seq</CheckBox>
+                                                <StackPanel Orientation="Horizontal"
+                                                            HorizontalAlignment="Center"
+                                                            Margin="0,3,0,0">
+                                                    <CheckBox Content="S"
+                                                              IsChecked="{Binding IsSequential}"
+                                                              FontSize="9"
+                                                              ToolTip="Campo sequencial" />
+                                                    <CheckBox Content="R"
+                                                              IsChecked="{Binding IsRevision}"
+                                                              FontSize="9"
+                                                              Margin="7,0,0,0"
+                                                              ToolTip="Campo de revisão" />
+                                                </StackPanel>
                                             </StackPanel>
                                             <TextBlock Text="{Binding DataContext.NamingStructure.Separator, RelativeSource={RelativeSource AncestorType=Window}}"
                                                        Margin="4,5,4,0"
@@ -240,11 +252,20 @@
                              Text="{Binding SheetCollection.SearchText, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Pesquisar por número, formato, nome ou status" />
                 </Grid>
-                <CheckBox Grid.Column="1"
-                          Content="Somente alertas"
-                          IsChecked="{Binding SheetCollection.ShowOnlyIssues}"
-                          VerticalAlignment="Center"
-                           Margin="11,0,14,0" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="11,0,14,0">
+                    <CheckBox Content="Alertas"
+                              IsChecked="{Binding SheetCollection.ShowOnlyIssues}" />
+                    <CheckBox Content="Revisões"
+                              IsChecked="{Binding SheetCollection.ShowOnlyRevisionUpdates}"
+                              Margin="12,0,0,0" />
+                    <CheckBox Content="Selecionados"
+                              IsChecked="{Binding SheetCollection.ShowOnlySelectedOutputs}"
+                              Margin="12,0,0,0"
+                              ToolTip="Mostrar folhas com PDF ou DWG marcado" />
+                </StackPanel>
                 <Border Grid.Column="2"
                         Background="{StaticResource SurfaceAltBrush}"
                         CornerRadius="10"
@@ -255,10 +276,13 @@
                     </TextBlock>
                 </Border>
                 <StackPanel Grid.Column="4" Orientation="Horizontal">
-                    <Button Content="PDF: todas" Style="{StaticResource CompactButton}" Click="SelectAllPdfClick" Margin="0,0,5,0" />
-                    <Button Content="PDF: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllPdfClick" Margin="0,0,9,0" />
-                    <Button Content="DWG: todas" Style="{StaticResource CompactButton}" Click="SelectAllDwgClick" Margin="0,0,5,0" />
-                    <Button Content="DWG: nenhuma" Style="{StaticResource CompactButton}" Click="ClearAllDwgClick" />
+                    <CheckBox Content="PDF"
+                              IsChecked="{Binding SheetCollection.AllPdfSelected}"
+                              ToolTip="Marcar ou desmarcar PDF em todas as folhas"
+                              Margin="0,0,12,0" />
+                    <CheckBox Content="DWG"
+                              IsChecked="{Binding SheetCollection.AllDwgSelected}"
+                              ToolTip="Marcar ou desmarcar DWG em todas as folhas" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -276,20 +300,45 @@
                       BorderThickness="0"
                       CellEditEnding="OnCellEditEnding">
                 <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Header="PDF" Binding="{Binding Plotar, UpdateSourceTrigger=PropertyChanged}" Width="50" />
-                    <DataGridCheckBoxColumn Header="DWG" Binding="{Binding GerarDwg, UpdateSourceTrigger=PropertyChanged}" Width="54" />
+                    <DataGridCheckBoxColumn Header="PDF"
+                                            Binding="{Binding Plotar, UpdateSourceTrigger=PropertyChanged}"
+                                            Width="50"
+                                            HeaderStyle="{StaticResource DataGridCenteredColumnHeader}"
+                                            ElementStyle="{StaticResource DataGridCenteredCheckBox}"
+                                            EditingElementStyle="{StaticResource DataGridCenteredCheckBox}" />
+                    <DataGridCheckBoxColumn Header="DWG"
+                                            Binding="{Binding GerarDwg, UpdateSourceTrigger=PropertyChanged}"
+                                            Width="54"
+                                            HeaderStyle="{StaticResource DataGridCenteredColumnHeader}"
+                                            ElementStyle="{StaticResource DataGridCenteredCheckBox}"
+                                            EditingElementStyle="{StaticResource DataGridCenteredCheckBox}" />
                     <DataGridTextColumn Header="#"
                                         Binding="{Binding Sequencia}"
                                         IsReadOnly="True"
                                         Width="44"
-                                        ElementStyle="{StaticResource DataGridTextCell}"
+                                        HeaderStyle="{StaticResource DataGridCenteredColumnHeader}"
+                                        ElementStyle="{StaticResource DataGridCenteredTextCell}"
                                         EditingElementStyle="{StaticResource DataGridEditingTextCell}" />
                     <DataGridTextColumn Header="Formato"
                                         Binding="{Binding Formato}"
                                         IsReadOnly="True"
                                         Width="72"
-                                        ElementStyle="{StaticResource DataGridTextCell}"
+                                        HeaderStyle="{StaticResource DataGridCenteredColumnHeader}"
+                                        ElementStyle="{StaticResource DataGridCenteredTextCell}"
                                         EditingElementStyle="{StaticResource DataGridEditingTextCell}" />
+                    <DataGridTemplateColumn Header="Revisão"
+                                            Width="70"
+                                            HeaderStyle="{StaticResource DataGridCenteredColumnHeader}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding SubirRevisao, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Style="{StaticResource DataGridCenteredCheckBox}"
+                                          Tag="{Binding}"
+                                          Click="RevisionSheetClick"
+                                          ToolTip="Incrementar automaticamente o campo de revisão desta folha" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Nome do arquivo"
                                         Binding="{Binding NomeArquivo, UpdateSourceTrigger=LostFocus}"
                                         Width="*"

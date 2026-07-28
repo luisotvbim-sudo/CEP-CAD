@@ -16,6 +16,11 @@ namespace PluginConceito.Modules.PlotFolhas
             var fileNames = new ArquivoNomeService();
             var nomenclature = new FolhaNomenclaturaService();
             var plotService = new PlotService(context.Zwcad);
+            var revisionService = new SheetRevisionService(
+                new RevisionNameService(
+                    new RevisionFieldLocator(),
+                    new RevisionNumberIncrementer()),
+                fileNames);
             var namingService = new PlotFolhasNamingService(
                 context.Zwcad,
                 fileNames,
@@ -40,8 +45,11 @@ namespace PluginConceito.Modules.PlotFolhas
                 new NamingStandardParser());
             var namingWorkflow = new PlotFolhasNamingWorkflow(
                 namingService,
+                revisionService,
                 stampService,
                 context.Telemetry);
+            var revisionWorkflow = new PlotFolhasRevisionWorkflow(
+                revisionService);
             var zoomWorkflow = new PlotFolhasZoomWorkflow(
                 new SheetZoomService(context.Zwcad),
                 context.Telemetry);
@@ -54,9 +62,10 @@ namespace PluginConceito.Modules.PlotFolhas
                     context.Telemetry));
 
             return new PlotFolhasHandler(
-                context,
+                context.Telemetry,
                 sessionService,
                 namingWorkflow,
+                revisionWorkflow,
                 generationWorkflow,
                 zoomWorkflow,
                 new PlotFolhasDocumentTracker());

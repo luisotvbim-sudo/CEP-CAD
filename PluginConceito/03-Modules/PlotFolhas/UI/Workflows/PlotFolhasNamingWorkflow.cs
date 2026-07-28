@@ -8,15 +8,19 @@ namespace PluginConceito.Modules.PlotFolhas
     internal sealed class PlotFolhasNamingWorkflow
     {
         private readonly PlotFolhasNamingService _namingService;
+        private readonly SheetRevisionService _revisionService;
         private readonly SeloBlockService _seloService;
         private readonly ITelemetry _telemetry;
 
         public PlotFolhasNamingWorkflow(
             PlotFolhasNamingService namingService,
+            SheetRevisionService revisionService,
             SeloBlockService seloService,
             ITelemetry telemetry)
         {
             _namingService = namingService ?? throw new ArgumentNullException(nameof(namingService));
+            _revisionService = revisionService ??
+                throw new ArgumentNullException(nameof(revisionService));
             _seloService = seloService ?? throw new ArgumentNullException(nameof(seloService));
             _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         }
@@ -40,9 +44,7 @@ namespace PluginConceito.Modules.PlotFolhas
 
             _namingService.ApplyStructure(
                 window.Sheets,
-                window.NamingSeparator,
-                window.NamingParts,
-                window.NamingPartSequential);
+                window.NamingStructure);
             window.RefreshSheets();
             window.SetStatusMessage("Estrutura aplicada em todas as folhas.");
         }
@@ -110,6 +112,9 @@ namespace PluginConceito.Modules.PlotFolhas
             try
             {
                 window.CommitChanges();
+                _revisionService.Reset(
+                    window.Sheets,
+                    false);
                 int copied = _seloService.CopyAttributeValuesToSheetNames(
                     window.Sheets,
                     window.SelectedStampBlock,

@@ -7,9 +7,10 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class PlotFolhasHandler
     {
-        private readonly IModuleContext _context;
+        private readonly ITelemetry _telemetry;
         private readonly PlotFolhasSessionService _sessionService;
         private readonly PlotFolhasNamingWorkflow _namingWorkflow;
+        private readonly PlotFolhasRevisionWorkflow _revisionWorkflow;
         private readonly PlotFolhasGenerationWorkflow _generationWorkflow;
         private readonly PlotFolhasZoomWorkflow _zoomWorkflow;
         private readonly PlotFolhasDocumentTracker _documentTracker;
@@ -17,18 +18,22 @@ namespace PluginConceito.Modules.PlotFolhas
         private PlotFolhasWindow _window;
 
         public PlotFolhasHandler(
-            IModuleContext context,
+            ITelemetry telemetry,
             PlotFolhasSessionService sessionService,
             PlotFolhasNamingWorkflow namingWorkflow,
+            PlotFolhasRevisionWorkflow revisionWorkflow,
             PlotFolhasGenerationWorkflow generationWorkflow,
             PlotFolhasZoomWorkflow zoomWorkflow,
             PlotFolhasDocumentTracker documentTracker)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _telemetry = telemetry ??
+                throw new ArgumentNullException(nameof(telemetry));
             _sessionService = sessionService ??
                 throw new ArgumentNullException(nameof(sessionService));
             _namingWorkflow = namingWorkflow ??
                 throw new ArgumentNullException(nameof(namingWorkflow));
+            _revisionWorkflow = revisionWorkflow ??
+                throw new ArgumentNullException(nameof(revisionWorkflow));
             _generationWorkflow = generationWorkflow ??
                 throw new ArgumentNullException(nameof(generationWorkflow));
             _zoomWorkflow = zoomWorkflow ??
@@ -63,11 +68,11 @@ namespace PluginConceito.Modules.PlotFolhas
 
                 ShowWindow(session);
                 if (trackWindowOpened)
-                    _context.Telemetry.TrackEvent("CNT_PLOT_FOLHAS.WindowOpened");
+                    _telemetry.TrackEvent("CNT_PLOT_FOLHAS.WindowOpened");
             }
             catch (Exception exception)
             {
-                _context.Telemetry.TrackException(telemetryOperation, exception);
+                _telemetry.TrackException(telemetryOperation, exception);
                 ZwcadApplication.ShowAlertDialog(
                     errorPrefix + GetInnermostMessage(exception));
             }
@@ -129,6 +134,7 @@ namespace PluginConceito.Modules.PlotFolhas
         {
             window.ApplyStructuredNameRequested += OnApplyStructuredNameRequested;
             window.FileNameEdited += OnFileNameEdited;
+            window.RevisionChangeRequested += OnRevisionChangeRequested;
             window.ZoomRequested += OnZoomRequested;
             window.SaveNamesRequested += OnSaveNamesRequested;
             window.PlotRequested += OnPlotRequested;
@@ -138,39 +144,87 @@ namespace PluginConceito.Modules.PlotFolhas
             window.Closed += OnWindowClosed;
         }
 
+        private void DetachWindowEvents(PlotFolhasWindow window)
+        {
+            if (window == null)
+            {
+                return;
+            }
+
+            window.ApplyStructuredNameRequested -= OnApplyStructuredNameRequested;
+            window.FileNameEdited -= OnFileNameEdited;
+            window.RevisionChangeRequested -= OnRevisionChangeRequested;
+            window.ZoomRequested -= OnZoomRequested;
+            window.SaveNamesRequested -= OnSaveNamesRequested;
+            window.PlotRequested -= OnPlotRequested;
+            window.StampBlockChanged -= OnStampBlockChanged;
+            window.LoadNamesFromStampRequested -= OnLoadNamesFromStampRequested;
+            window.RefreshRequested -= OnRefreshRequested;
+            window.Closed -= OnWindowClosed;
+        }
+
         private void OnApplyStructuredNameRequested(object sender, EventArgs e)
         {
-            _namingWorkflow.ApplyStructure(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.ApplyStructure",
+                "Falha ao aplicar a estrutura: ",
+                () => _namingWorkflow.ApplyStructure(_window));
         }
 
         private void OnFileNameEdited(object sender, EventArgs e)
         {
-            _namingWorkflow.NormalizeEditedName(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.NormalizeName",
+                "Falha ao atualizar o nome: ",
+                () => _namingWorkflow.NormalizeEditedName(_window));
+        }
+
+        private void OnRevisionChangeRequested(object sender, EventArgs e)
+        {
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.ToggleRevision",
+                "Falha ao atualizar a revisão: ",
+                () => _revisionWorkflow.Toggle(_window));
         }
 
         private void OnSaveNamesRequested(object sender, EventArgs e)
         {
-            _namingWorkflow.Save(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.SaveNames",
+                "Falha ao salvar a nomenclatura: ",
+                () => _namingWorkflow.Save(_window));
         }
 
         private void OnZoomRequested(object sender, EventArgs e)
         {
-            _zoomWorkflow.Run(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.Zoom",
+                "Falha ao aproximar a folha: ",
+                () => _zoomWorkflow.Run(_window));
         }
 
         private void OnPlotRequested(object sender, EventArgs e)
         {
-            _generationWorkflow.Run(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.Plot",
+                "Falha ao gerar os arquivos: ",
+                () => _generationWorkflow.Run(_window));
         }
 
         private void OnStampBlockChanged(object sender, EventArgs e)
         {
-            _namingWorkflow.LoadStampAttributes(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.LoadStampAttributes",
+                "Falha ao carregar os atributos do selo: ",
+                () => _namingWorkflow.LoadStampAttributes(_window));
         }
 
         private void OnLoadNamesFromStampRequested(object sender, EventArgs e)
         {
-            _namingWorkflow.LoadNamesFromStamp(_window);
+            ExecuteSafely(
+                "CNT_PLOT_FOLHAS.LoadNamesFromStamp",
+                "Falha ao carregar os nomes do selo: ",
+                () => _namingWorkflow.LoadNamesFromStamp(_window));
         }
 
         private void OnRefreshRequested(object sender, EventArgs e)
@@ -183,8 +237,29 @@ namespace PluginConceito.Modules.PlotFolhas
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
+            var closedWindow = sender as PlotFolhasWindow;
+            DetachWindowEvents(closedWindow);
             _documentTracker.Detach();
-            if (ReferenceEquals(sender, _window)) _window = null;
+            if (ReferenceEquals(closedWindow, _window)) _window = null;
+        }
+
+        private void ExecuteSafely(
+            string telemetryOperation,
+            string errorPrefix,
+            Action action)
+        {
+            try
+            {
+                action?.Invoke();
+            }
+            catch (Exception exception)
+            {
+                _telemetry.TrackException(
+                    telemetryOperation,
+                    exception);
+                ZwcadApplication.ShowAlertDialog(
+                    errorPrefix + GetInnermostMessage(exception));
+            }
         }
     }
 }

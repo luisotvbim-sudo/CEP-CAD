@@ -11,8 +11,13 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         private bool _plotar = true;
         private bool _gerarDwg;
+        private bool _subirRevisao;
         private string _nomeArquivo;
         private string _erroNome;
+        private string _erroRevisao;
+        private string _originalNameBeforeRevision;
+        private bool _hasRevisionSnapshot;
+        private RevisionNameFailureKind _revisionFailureKind;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -78,31 +83,34 @@ namespace PluginConceito.Modules.PlotFolhas
         public bool Plotar
         {
             get { return _plotar; }
-            set
-            {
-                if (_plotar == value)
-                {
-                    return;
-                }
-
-                _plotar = value;
-                RaisePropertyChanged(nameof(Plotar));
-            }
+            set { SetBoolean(ref _plotar, value, nameof(Plotar)); }
         }
 
         public bool GerarDwg
         {
             get { return _gerarDwg; }
-            set
-            {
-                if (_gerarDwg == value)
-                {
-                    return;
-                }
+            set { SetBoolean(ref _gerarDwg, value, nameof(GerarDwg)); }
+        }
 
-                _gerarDwg = value;
-                RaisePropertyChanged(nameof(GerarDwg));
-            }
+        public bool SubirRevisao
+        {
+            get { return _subirRevisao; }
+            set { SetBoolean(ref _subirRevisao, value, nameof(SubirRevisao)); }
+        }
+
+        internal bool HasRevisionSnapshot
+        {
+            get { return _hasRevisionSnapshot; }
+        }
+
+        internal string OriginalNameBeforeRevision
+        {
+            get { return _originalNameBeforeRevision; }
+        }
+
+        internal RevisionNameFailureKind RevisionFailureKind
+        {
+            get { return _revisionFailureKind; }
         }
 
         public string NomeArquivo
@@ -125,23 +133,29 @@ namespace PluginConceito.Modules.PlotFolhas
         public string ErroNome
         {
             get { return _erroNome; }
-            set
-            {
-                if (string.Equals(_erroNome, value, StringComparison.Ordinal))
-                {
-                    return;
-                }
+            set { SetValidationError(ref _erroNome, value, nameof(ErroNome)); }
+        }
 
-                _erroNome = value;
-                RaisePropertyChanged(nameof(ErroNome));
-                RaisePropertyChanged(nameof(Status));
-                RaisePropertyChanged(nameof(Valida));
+        public string ErroRevisao
+        {
+            get { return _erroRevisao; }
+            private set
+            {
+                SetValidationError(
+                    ref _erroRevisao,
+                    value,
+                    nameof(ErroRevisao));
             }
         }
 
         public bool Valida
         {
-            get { return Erros.Count == 0 && string.IsNullOrWhiteSpace(ErroNome); }
+            get
+            {
+                return Erros.Count == 0 &&
+                    string.IsNullOrWhiteSpace(ErroNome) &&
+                    string.IsNullOrWhiteSpace(ErroRevisao);
+            }
         }
 
         public string Status
@@ -158,6 +172,11 @@ namespace PluginConceito.Modules.PlotFolhas
                     return "Erro: " + ErroNome;
                 }
 
+                if (!string.IsNullOrWhiteSpace(ErroRevisao))
+                {
+                    return "Erro de revisão: " + ErroRevisao;
+                }
+
                 if (Avisos.Count > 0)
                 {
                     return "Aviso: " + string.Join("; ", Avisos);
@@ -171,6 +190,77 @@ namespace PluginConceito.Modules.PlotFolhas
         {
             RaisePropertyChanged(nameof(Status));
             RaisePropertyChanged(nameof(Valida));
+        }
+
+        internal void BeginRevision()
+        {
+            _originalNameBeforeRevision = NomeArquivo;
+            _hasRevisionSnapshot = true;
+            _revisionFailureKind = RevisionNameFailureKind.None;
+            ErroRevisao = null;
+        }
+
+        internal void CompleteRevision(string revisedName)
+        {
+            NomeArquivo = revisedName;
+            _revisionFailureKind = RevisionNameFailureKind.None;
+            ErroRevisao = null;
+        }
+
+        internal void FailRevision(
+            string error,
+            RevisionNameFailureKind failureKind)
+        {
+            _revisionFailureKind = failureKind;
+            ErroRevisao = error;
+        }
+
+        internal void CancelRevision()
+        {
+            ResetRevision(true);
+        }
+
+        internal void ResetRevision(bool restoreOriginalName)
+        {
+            if (restoreOriginalName && _hasRevisionSnapshot)
+            {
+                NomeArquivo = _originalNameBeforeRevision;
+            }
+
+            _originalNameBeforeRevision = null;
+            _hasRevisionSnapshot = false;
+            _revisionFailureKind = RevisionNameFailureKind.None;
+            ErroRevisao = null;
+            SubirRevisao = false;
+        }
+
+        private void SetBoolean(
+            ref bool field,
+            bool value,
+            string propertyName)
+        {
+            if (field == value)
+            {
+                return;
+            }
+
+            field = value;
+            RaisePropertyChanged(propertyName);
+        }
+
+        private void SetValidationError(
+            ref string field,
+            string value,
+            string propertyName)
+        {
+            if (string.Equals(field, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            field = value;
+            RaisePropertyChanged(propertyName);
+            NotifyValidationChanged();
         }
 
         private void RaisePropertyChanged(string propertyName)
