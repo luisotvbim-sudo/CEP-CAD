@@ -35,8 +35,12 @@ namespace PluginConceito.Modules.PlotFolhas
 
             report = report ?? delegate { };
 
+            ObjectId baseViewportId;
             using (var output = new DwgOutputFile(document.Name, outputPath, overwriteExisting))
-            using (Database database = _databaseCloner.Clone(document))
+            using (Database database = _databaseCloner.Clone(
+                document,
+                sheet.IsModelSpace ? null : sheet.LayoutName,
+                out baseViewportId))
             {
                 if (sheet.IsModelSpace)
                 {
@@ -44,7 +48,7 @@ namespace PluginConceito.Modules.PlotFolhas
                 }
                 else
                 {
-                    ExportLayout(database, sheet, report);
+                    ExportLayout(database, sheet, baseViewportId, report);
                 }
 
                 database.SaveAs(output.TemporaryPath, DwgVersion.Current);
@@ -58,19 +62,26 @@ namespace PluginConceito.Modules.PlotFolhas
         private void ExportLayout(
             Database database,
             FolhaInfo sheet,
+            ObjectId baseViewportId,
             Action<string> report)
         {
             DwgLayoutIsolationResult layout =
-                _layoutIsolator.Isolate(database, sheet);
+                _layoutIsolator.Isolate(
+                    database,
+                    sheet,
+                    baseViewportId);
             ReportLayout(sheet, layout, report);
 
             ModelIsolationResult model = _modelIsolator.Isolate(
                 database,
                 sheet.LayoutName,
-                report);
+                baseViewportId);
             ReportViewportModel(sheet, model, report);
 
-            _layoutIsolator.PrepareOpeningView(database, sheet);
+            _layoutIsolator.PrepareOpeningView(
+                database,
+                sheet,
+                baseViewportId);
             report(
                 "DWG folha " + sheet.Sequencia +
                 ": vista inicial centralizada no Layout.");
@@ -116,7 +127,7 @@ namespace PluginConceito.Modules.PlotFolhas
             if (result.ViewportsConsidered == 0)
             {
                 report(string.Format(
-                    "DWG folha {0}: Model esvaziado; nenhuma viewport de Model válida, apagados={1}.",
+                    "DWG folha {0}: Model esvaziado; a folha não possui viewport de Model ativa, apagados={1}.",
                     sheet.Sequencia,
                     result.EntitiesErased));
                 return;

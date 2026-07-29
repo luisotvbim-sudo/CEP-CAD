@@ -125,6 +125,7 @@
     </Compile>
     <Compile Include="03-Modules\PlotFolhas\Naming\ArquivoNomeService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgDatabaseCloner.cs" />
+    <Compile Include="03-Modules\PlotFolhas\Export\WblockModelCoordinateNormalizer.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgExportService.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgOutputFile.cs" />
     <Compile Include="03-Modules\PlotFolhas\Export\DwgSheetExportService.cs" />

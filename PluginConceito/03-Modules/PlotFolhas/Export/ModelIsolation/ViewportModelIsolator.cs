@@ -18,7 +18,7 @@ namespace PluginConceito.Modules.PlotFolhas
         public ModelIsolationResult Isolate(
             Database database,
             string layoutName,
-            Action<string> report = null)
+            ObjectId baseViewportId)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (string.IsNullOrWhiteSpace(layoutName))
@@ -26,12 +26,11 @@ namespace PluginConceito.Modules.PlotFolhas
 
             using (Transaction transaction = database.TransactionManager.StartTransaction())
             {
-                report = report ?? delegate { };
                 List<ViewportModelRegion> regions = _regionProvider.Create(
                     database,
                     layoutName,
                     transaction,
-                    report);
+                    baseViewportId);
 
                 try
                 {
@@ -51,7 +50,6 @@ namespace PluginConceito.Modules.PlotFolhas
                             transaction,
                             regions,
                             result,
-                            report,
                             layerEditScope);
                         layerEditScope.Restore();
                         transaction.Commit();

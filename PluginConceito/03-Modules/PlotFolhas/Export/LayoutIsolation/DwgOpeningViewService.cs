@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using ZwSoft.ZwCAD.DatabaseServices;
 using ZwSoft.ZwCAD.Geometry;
 
@@ -9,13 +8,16 @@ namespace PluginConceito.Modules.PlotFolhas
     {
         private const double MarginFactor = 1.12;
 
-        public void Prepare(Database database, FolhaInfo sheet)
+        public void Prepare(
+            Database database,
+            FolhaInfo sheet,
+            ObjectId baseViewportId)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (sheet == null) throw new ArgumentNullException(nameof(sheet));
 
             ActivateLayout(database, sheet.LayoutName);
-            AdjustPaperViewport(database, sheet);
+            AdjustPaperViewport(database, sheet, baseViewportId);
             SetPaperExtents(database, sheet.Limites);
         }
 
@@ -34,7 +36,10 @@ namespace PluginConceito.Modules.PlotFolhas
             }
         }
 
-        private static void AdjustPaperViewport(Database database, FolhaInfo sheet)
+        private static void AdjustPaperViewport(
+            Database database,
+            FolhaInfo sheet,
+            ObjectId baseViewportId)
         {
             using (Transaction transaction = database.TransactionManager.StartTransaction())
             {
@@ -42,12 +47,6 @@ namespace PluginConceito.Modules.PlotFolhas
                 if (!layout.IsWriteEnabled) layout.UpgradeOpen();
                 layout.TabSelected = true;
 
-                var paperSpace = (BlockTableRecord)transaction.GetObject(
-                    layout.BlockTableRecordId,
-                    OpenMode.ForRead);
-                ObjectId baseViewportId = PaperSpaceBaseViewportResolver.Resolve(
-                    paperSpace.Cast<ObjectId>(),
-                    transaction);
                 FitViewport(baseViewportId, transaction, sheet);
                 transaction.Commit();
             }

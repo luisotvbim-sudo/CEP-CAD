@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ZwSoft.ZwCAD.DatabaseServices;
 
@@ -8,12 +9,20 @@ namespace PluginConceito.Modules.PlotFolhas
         public PaperSpaceViewportSelection Select(
             IEnumerable<ObjectId> entityIds,
             Transaction transaction,
-            SheetRegion sheetRegion)
+            SheetRegion sheetRegion,
+            ObjectId baseViewportId)
         {
             var entityIdList = new List<ObjectId>(entityIds);
-            ObjectId baseViewportId = PaperSpaceBaseViewportResolver.Resolve(
-                entityIdList,
-                transaction);
+            if (baseViewportId.IsNull ||
+                !entityIdList.Contains(baseViewportId) ||
+                !(CadEntityAccess.OpenEntityOrNull(
+                    transaction,
+                    baseViewportId) is Viewport))
+            {
+                throw new InvalidOperationException(
+                    "A viewport geral mapeada nao pertence ao Paper Space da folha.");
+            }
+
             var selection = new PaperSpaceViewportSelection(baseViewportId);
 
             foreach (ObjectId entityId in entityIdList)
@@ -42,7 +51,8 @@ namespace PluginConceito.Modules.PlotFolhas
         {
             try
             {
-                if (sheetRegion.Contains(viewport.CenterPoint) || sheetRegion.Intersects(viewport))
+                if (sheetRegion.Contains(viewport.CenterPoint) ||
+                    sheetRegion.Intersects(viewport))
                     return true;
 
                 if (!viewport.NonRectClipOn || viewport.NonRectClipEntityId.IsNull)
