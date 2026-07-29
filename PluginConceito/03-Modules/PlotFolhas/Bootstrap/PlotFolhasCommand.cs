@@ -17,6 +17,7 @@ namespace PluginConceito.Modules.PlotFolhas
             TabTitle = "CNT",
             PanelId = "CNT_PLOTAGEM",
             PanelTitle = "Plotagem",
+            IconResource = "PluginConceito._03_Modules.PlotFolhas.Resources.PlotFolhas.png",
             ToolTip = "Mapeia as folhas do layout atual, ajuda a nomear os PDFs e plota em lote.",
             Order = 20,
             Size = RibbonItemSize.Large)]
