@@ -139,8 +139,11 @@ namespace PluginConceito.Application.Ribbon
 
                 if (!string.IsNullOrWhiteSpace(attribute.IconResource))
                 {
-                    button.Image = _iconLoader.Load(attribute.IconResource);
-                    button.LargeImage = button.Image;
+                    var icon = _iconLoader.Load(attribute.IconResource);
+
+                    // ZWCAD 2024 ignora LargeImage quando Image já contém a mesma instância.
+                    button.LargeImage = icon;
+                    button.Image = icon;
                 }
 
                 panel.Items.Add(button);
