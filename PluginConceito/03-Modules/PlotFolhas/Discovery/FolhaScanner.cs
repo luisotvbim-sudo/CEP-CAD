@@ -11,7 +11,7 @@ namespace PluginConceito.Modules.PlotFolhas
 {
     internal sealed class FolhaScanner
     {
-        private const double RowTolerance = 10.0;
+        private const double RowTolerance = 100.0;
 
         private readonly IZwcadContext _zwcad;
         private readonly FolhaFormatCatalog _formats;

@@ -286,7 +286,7 @@ string TryOpenOutputFolder(folder)
 - Fallback: ponto de inserção + dimensões do formato
 - Último fallback: `GeometricExtents`
 - Valida escala 1:1 no Layout ou escala uniforme X/Y no Model, rotação 90°, dimensões e sobreposição
-- Ordena: cima→baixo (Y desc), esquerda→direita (X asc), tolerância 10mm para mesma linha
+- Ordena: cima→baixo (Y desc), esquerda→direita (X asc), tolerância 100mm para mesma linha
 
 ### 5.7 Demais serviços
 
