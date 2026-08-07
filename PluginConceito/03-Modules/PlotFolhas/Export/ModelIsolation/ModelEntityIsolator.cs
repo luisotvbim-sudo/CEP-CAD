@@ -40,12 +40,6 @@ namespace PluginConceito.Modules.PlotFolhas
             }
         }
 
-        private void Recursivo()
-        {
-            Recursivo();
-
-        }
-
         private void IsolateEntity(
             Entity entity,
             BlockTableRecord modelSpace,
